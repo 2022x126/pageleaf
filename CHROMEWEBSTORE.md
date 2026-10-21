@@ -1,7 +1,8 @@
 # Chrome Web Store Listing — Pageleaf
 
 > Last Updated: 2026-10-21
-> Status: Draft; not submitted or published. Confirm all copy against the final build before submission.
+> Version: 0.2.0
+> Chrome Web Store status: Draft; not submitted or published. GitHub development releases are separate from store publication.
 
 ## Store Listing
 
@@ -11,65 +12,64 @@
 
 **Detailed Description**:
 
-Pageleaf 把你正在阅读的网页文章或选中文字，整理成可携带的 Markdown 笔记。
+Pageleaf 把当前网页文章或选中文字整理成自己的笔记，提供纯白与纯黑两种简洁阅读界面。
 
-点击扩展图标即可提取当前文章，在清爽的阅读器中查看目录、调节文字大小和切换浅色或深色外观。
+查看文章目录、调节字号、写下想法，保存后可继续上次阅读的位置。通过全文搜索查找标题、来源、个人笔记和文章正文。
 
-添加自己的笔记，复制全文或下载 Markdown 文件。需要长期保留时，主动保存到本机笔记库，再通过搜索找到它。
+复制或下载 Markdown，备份整个笔记库为 JSON，或从备份恢复笔记。恢复会检查文件与内容，跳过重复笔记并保留已有记录。也可以打开浏览器打印窗口，自行打印或保存 PDF。
 
-无需注册、API Key 或订阅。内容在你的设备上处理，扩展不上传文章或笔记，也没有广告和分析统计。为避免额外图片请求，阅读器不显示原文图片。
+无需账号、API Key 或订阅。内容在本机处理，不上传文章、笔记或阅读进度，没有广告、分析统计、云同步或远程字体。原文图片及嵌入内容不会自动加载。
 
-请先打开一篇普通网页文章，再点击 Pageleaf 图标。如只需要一段内容，可先选中文字。浏览器内部页、PDF、图片文章和部分复杂网页不支持。提取结果取决于网页结构。
+打开普通网页文章后点击扩展图标；只需要片段时可先选中文字。PDF、浏览器内部页、图片/视频文章和部分复杂网页无法提取，提取效果取决于网页结构。
 
-公共支持网址：［由维护者填写］
+支持：https://github.com/2022x126/pageleaf/issues
 
 **Category**: Productivity
 
-**Single Purpose**: 将用户主动选择的当前网页正文转换为可本地保存和导出的 Markdown 笔记。
+**Single Purpose**: 将用户主动选择的当前网页正文整理为可本机阅读、保存、检索和导出的个人笔记。
 
 **Primary Language**: Chinese (Simplified)
 
 ## Graphics & Assets
 
-| Asset              | Dimensions          | Status       | Filename                  |
-| ------------------ | ------------------- | ------------ | ------------------------- |
-| Store Icon         | 128×128 PNG         | 构建后核验   | `dist/icons/icon-128.png` |
-| Screenshot 1       | 1280×800 or 640×400 | 待实际截图   |                           |
-| Screenshot 2       | 1280×800 or 640×400 | 待实际截图   |                           |
-| Small Promo Tile   | 440×280             | 未创建，可选 |                           |
-| Marquee Promo Tile | 1400×560            | 未创建，可选 |                           |
+| Asset              | Dimensions                         | Status                                   | Filename                  |
+| ------------------ | ---------------------------------- | ---------------------------------------- | ------------------------- |
+| Store icon         | 128×128 PNG                        | 按构建产物核验                           | `dist/icons/icon-128.png` |
+| White reader       | Store requires 1280×800 or 640×400 | 网页预览；上架前需核验尺寸与实际扩展表现 | `docs/reader.png`         |
+| Black reader       | Store requires 1280×800 or 640×400 | 网页预览；上架前需核验尺寸与实际扩展表现 | `docs/reader-dark.png`    |
+| Welcome page       | Store requires 1280×800 or 640×400 | 网页预览；上架前需核验尺寸与实际扩展表现 | `docs/welcome.png`        |
+| Small promo tile   | 440×280                            | 未创建，可选                             |                           |
+| Marquee promo tile | 1400×560                           | 未创建，可选                             |                           |
 
-截图应使用有权展示的测试文章，分别展示阅读器、Markdown 导出和本机笔记库，避免真实私人网页和笔记。不能把 UI 预览图冒充 Chrome 实机截图。
+截图仅展示可公开的示例内容。网页预览不能冒充已安装扩展的实机截图。v0.2.0 无插画、渐变、纹理或远程字体。
 
 ## Permissions Justification
 
-| Permission  | Type        | Justification                                                                                                                      |
-| ----------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `activeTab` | permissions | Gives temporary access to the current page only when the user invokes Pageleaf, so its article or selected text can become a note. |
-| `scripting` | permissions | Runs the bundled article extractor in that temporarily authorized page; no persistent content script or remote code is installed.  |
-| `storage`   | permissions | Holds temporary captures in browser-session memory and explicitly saved notes and reader preferences on the user's device.         |
+| Permission  | Type        | Justification                                                                                                                                                       |
+| ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `activeTab` | permissions | Temporarily reads the current page only when the user invokes Pageleaf, so an article or selected text can become a note.                                           |
+| `scripting` | permissions | Runs the bundled extractor in that temporarily authorized page; no persistent content script or remote code is installed.                                           |
+| `storage`   | permissions | Keeps session captures, explicitly saved notes, saved-note reading positions and display preferences locally; supplies the user's local backup and restore actions. |
 
-**host_permissions**: none. **optional_host_permissions**: none. No `tabs`, `history`, `cookies`, `identity`, or `downloads` permission. Normal browser file-download behavior is used only after an explicit export click.
+**host_permissions**: none. **optional_host_permissions**: none. No `tabs`, `history`, `cookies`, `identity`, `downloads`, remote-font or general file-system permission. Download, file selection, clipboard and print actions use user-triggered browser behavior.
 
 ## Privacy & Data Use
 
-### Data Collection
+**Handles user data?** Yes, locally. **Developer receives it?** No. Dashboard disclosures must distinguish local handling from transmission and match `PRIVACY.md`.
 
-**Does the extension handle user data?** Yes, locally. It reads the page the user explicitly chooses and stores temporary or explicitly saved notes. **Does the developer collect or receive this data?** No. Store dashboard declarations must distinguish local handling from collection/transmission and match the current policy wording.
+| Data Type                                                                   | Local handling                                                                | Off-device transmission by extension | Purpose                                        |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------------- |
+| Website content                                                             | Invoked article/selection, metadata, personal notes and selected JSON backup  | No                                   | Reading, search, notes, export and restoration |
+| User activity                                                               | Saved-note reading ratio/update time and display preferences; no browsing log | No                                   | Continue reading and remember display settings |
+| Web history                                                                 | No history access; notes retain their individual source URLs                  | No                                   | Source attribution                             |
+| Personal, health, financial or location information; private communications | May occur within user-selected content; not separately requested              | No                                   | The same user-requested note features          |
+| Authentication information                                                  | No credential/cookie access; URL credentials, queries and fragments removed   | No                                   | Not collected as account data                  |
 
-| Data Type                    | Handled locally?                                                      | Transmitted Off-Device? | Purpose                                  | Shared with Third Parties? |
-| ---------------------------- | --------------------------------------------------------------------- | ----------------------- | ---------------------------------------- | -------------------------- |
-| Personally identifiable info | May be present in user-selected content; not separately requested     | No                      | User-requested extraction/notes          | No                         |
-| Health info                  | May be present in selected content; not separately requested          | No                      | Same                                     | No                         |
-| Financial info               | May be present in selected content; not separately requested          | No                      | Same                                     | No                         |
-| Authentication info          | Not requested; URL credentials/query strings/fragments removed        | No                      | N/A                                      | No                         |
-| Personal communications      | May be present in selected content; not separately requested          | No                      | User-requested extraction/notes          | No                         |
-| Location                     | May be present in selected content; not separately requested          | No                      | Same                                     | No                         |
-| Web history                  | No history access; saved notes retain individual source URLs          | No                      | Source attribution                       | No                         |
-| User activity                | Reader preferences and explicit save/delete actions only; no tracking | No                      | Reader and library operation             | No                         |
-| Website content              | Yes: selected page/selection, metadata, personal notes                | No                      | Reading, conversion, local saving/export | No                         |
+Temporary captures use session memory, at most six records; records older than 24 hours are pruned on the next capture, and browser exit clears them. An open reader may retain an in-memory copy until closed. Saved notes use local storage, at most 100 notes and 1 MB per note, until deletion or uninstall. Reading progress is saved only for explicitly saved notes, under `progress:<id>` with ratio and update time; scroll writes are throttled to 750 ms, and progress is removed with its note. Preferences are local.
 
-Temporary captures: `chrome.storage.session`, at most six records; records older than 24 hours are removed when a new capture is created; browser exit clears session storage. An open reader can retain its in-memory copy until closed. Saved notes: `chrome.storage.local`, up to 100 records until user deletion or uninstall. Preferences: local. No additional encryption. User-triggered clipboard/export files and external link navigation have their ordinary browser/OS behavior. Remote images and embeds are excluded to avoid passive network requests. No analytics, cloud sync, cookies, account, API keys, backend, or remote executable code.
+JSON backups contain notes only, excluding progress and preferences. Backup/restore is limited to 20 MB; restoration validates all limits before writing and re-sanitizes content. Existing IDs and matching source/extraction-mode/article-text combinations are skipped. Existing notes are not overwritten.
+
+Local records and exported files are not additionally encrypted. Clipboard writes, Markdown/JSON downloads and browser printing/PDF saving are user-controlled. Deletion does not remove exported files or printed copies. Clicking a source/article link navigates to that website. No telemetry, server, advertising, cloud sync, remote code/fonts, or passive article-image/embedded-resource requests.
 
 ### Data Use Certification
 
@@ -79,19 +79,17 @@ Temporary captures: `chrome.storage.session`, at most six records; records older
 
 ## Privacy Policy
 
-**Source**: `PRIVACY.md` (included in source and installation package).
+**Source**: `PRIVACY.md`, included in source and install packages.
 
 **Privacy Policy URL** [REQUIRED before submission]:
 
-Publicly host the policy, fill in an actual contact method, and verify the URL before submitting. Do not claim an unpublished local file is a live policy URL.
+Host the policy publicly and verify the live URL before store submission.
 
 ## Distribution
 
 **Visibility**:
 
 **Regions**:
-
-These choices belong to the publisher; no store publication has been performed.
 
 ## Developer Info
 
@@ -107,27 +105,26 @@ These choices belong to the publisher; no store publication has been performed.
 
 ## Version History
 
-| Version | Date       | Changes                                                                                   | Status |
-| ------- | ---------- | ----------------------------------------------------------------------------------------- | ------ |
-| 0.1.0   | 2026-10-21 | Initial article/selection extraction, reading view, local notes/library, Markdown export. | Draft  |
+| Version | Date       | Changes                                                                                                                                      | Chrome Web Store Status |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| 0.2.0   | 2026-10-21 | Pure white/black interface; full-text search; validated JSON backup/restore; browser printing/PDF saving; local saved-note reading progress. | Draft                   |
+| 0.1.0   | 2026-10-21 | Initial article/selection extraction, reader, local notes and Markdown export.                                                               | Draft                   |
 
 ## Review Notes
 
-### Known Issues / Limitations
+### Known limits
 
-Extraction accuracy varies by website. No PDF/image/video extraction, paywall/login bypass, iframe crawling, or pagination retrieval. Remote images are removed. Complex tables/math may require manual repair. Source URLs lose queries/fragments, so query-based source links may need correction. Captures have a size cap. Local storage is unencrypted and is not a secure vault.
+Extraction depends on website structure. No PDF/image/video extraction, login/paywall bypass, iframe crawling or pagination retrieval. Images are omitted; complex tables/formulas and query-dependent links may need manual correction. Browser print/PDF output depends on the user's print settings.
 
 ### Publication readiness
 
-- [ ] Manifest names/descriptions/icons checked against this listing.
-- [ ] Real Chrome end-to-end acceptance completed and recorded.
-- [ ] At least one actual screenshot at a required store size.
-- [ ] Privacy policy publicly hosted and reachable; contact method filled in.
-- [ ] Publisher, regions, visibility, support details supplied by user.
-- [ ] Installation ZIP contains only runtime files and licenses; no source secrets or build dependencies.
-- [ ] Data declarations checked against final runtime code.
-- [ ] Version submitted by publisher; review outcome recorded.
+- [ ] Listing, permissions and icons checked against the final build.
+- [ ] Installed Chrome end-to-end acceptance recorded in `docs/VALIDATION.md`.
+- [ ] Store screenshots captured at a required size using public sample content.
+- [ ] Live privacy URL, publisher, contact email, visibility and regions completed.
+- [ ] Install ZIP checked; data disclosures matched to actual runtime code.
+- [ ] Publisher submitted the version and recorded the review result.
 
-### Rejection History
+### Rejection history
 
-None. No submission has been made.
+None. No Chrome Web Store submission has been made.

@@ -93,3 +93,55 @@ test("searches titles, URLs and personal notes without mutating note order", () 
   assert.equal(notes[0].title, "Older note");
   assert.equal(searchNotes(notes, "example.com/a")[0].title, "Older note");
 });
+
+test("finds matches in article text and Markdown while keeping newest matches first", () => {
+  const notes = [
+    {
+      id: "text-only",
+      title: "Caching guide",
+      textContent: "The article explains IndexedDB transactions and local persistence.",
+      updatedAt: "2026-10-20T00:00:00Z",
+    },
+    {
+      id: "unrelated",
+      title: "A reading habit",
+      textContent: "A quiet place for your notes.",
+      markdown: "## Read slowly",
+      updatedAt: "2026-10-22T00:00:00Z",
+    },
+    {
+      id: "markdown-only",
+      title: "Offline notes",
+      markdown: "## 数据保存\n\n用 IndexedDB 在本机保留阅读资料。",
+      updatedAt: "2026-10-21T00:00:00Z",
+    },
+  ];
+  assert.deepEqual(
+    searchNotes(notes, "  INDEXEDdb \n").map((value) => value.id),
+    ["markdown-only", "text-only"],
+  );
+  assert.deepEqual(notes.map((value) => value.id), ["text-only", "unrelated", "markdown-only"]);
+});
+
+test("search remains compatible with notes that have no stored article body", () => {
+  const notes = [
+    {
+      id: "legacy",
+      title: "Old field notes",
+      url: "https://example.com/archive",
+      note: "Keep the original quotation.",
+      updatedAt: "2026-10-20T00:00:00Z",
+    },
+    {
+      id: "empty-body",
+      title: "A newer note",
+      textContent: null,
+      markdown: "",
+      updatedAt: "2026-10-21T00:00:00Z",
+    },
+  ];
+  assert.deepEqual(searchNotes(notes, "QUOTATION").map((value) => value.id), ["legacy"]);
+  assert.deepEqual(searchNotes(notes, "archive").map((value) => value.id), ["legacy"]);
+  assert.deepEqual(searchNotes(notes, "missing正文").map((value) => value.id), []);
+  assert.deepEqual(searchNotes(notes, " \n").map((value) => value.id), ["empty-body", "legacy"]);
+});

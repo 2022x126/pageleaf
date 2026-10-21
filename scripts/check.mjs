@@ -3,6 +3,7 @@ import { readFile, readdir, access } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { JSDOM } from "jsdom";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const dist = path.join(root, "dist");
@@ -130,6 +131,117 @@ for (const filename of runtime.filter((p) => p.endsWith(".html"))) {
     await access(localAsset(match[1].split(/[?#]/)[0]));
   }
 }
+// Backgrounds must reference bundled files; CSS escapes are decoded before
+// inspecting URLs so an escaped protocol cannot disguise an external resource.
+function cssText(value) {
+  return value
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(
+      /\\([0-9a-f]{1,6})(?:\r\n|[ \t\r\n\f])?|\\([^\r\n\f])/gi,
+      (_, hex, character) =>
+        hex
+          ? String.fromCodePoint(
+              Math.min(parseInt(hex, 16) || 0xfffd, 0x10ffff),
+            )
+          : character,
+    );
+}
+function cssURLs(value) {
+  return [
+    ...cssText(value).matchAll(
+      /\burl\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*?))\s*\)/gi,
+    ),
+  ].map((match) => (match[1] ?? match[2] ?? match[3]).trim());
+}
+function isFragment(reference) {
+  return /^#[^\s"'()]+$/.test(reference);
+}
+for (const filename of runtime.filter((p) => p.endsWith(".css"))) {
+  const text = await readFile(filename, "utf8");
+  assert.ok(!/@import\b/i.test(cssText(text)), `CSS import in ${filename}`);
+  for (const reference of cssURLs(text)) {
+    if (isFragment(reference)) continue;
+    assert.ok(
+      reference &&
+        !/^(?:[a-z][a-z\d+.-]*:|\/\/|\\)/i.test(reference) &&
+        !path.isAbsolute(reference),
+      `Nonlocal CSS resource ${reference} in ${filename}`,
+    );
+    const pathname = decodeURIComponent(reference.split(/[?#]/)[0]);
+    const target = path.resolve(path.dirname(filename), pathname);
+    const relative = path.relative(dist, target);
+    assert.ok(
+      relative &&
+        relative !== ".." &&
+        !relative.startsWith(`..${path.sep}`) &&
+        !path.isAbsolute(relative) &&
+        runtime.includes(target),
+      `Missing or unsafe CSS resource ${reference} in ${filename}`,
+    );
+    await access(target);
+  }
+}
+for (const filename of runtime.filter(
+  (p) =>
+    p.endsWith(".svg") &&
+    path.relative(dist, p).startsWith(`assets${path.sep}`),
+)) {
+  const text = await readFile(filename, "utf8");
+  assert.ok(
+    !/<!DOCTYPE|<!ENTITY/i.test(text),
+    `SVG entity declaration in ${filename}`,
+  );
+  const parsed = new JSDOM(text, { contentType: "image/svg+xml" });
+  try {
+    const document = parsed.window.document;
+    assert.equal(
+      document.documentElement.localName,
+      "svg",
+      `Invalid SVG root in ${filename}`,
+    );
+    const elements = [...document.querySelectorAll("*")];
+    const ids = new Set(
+      elements.map((element) => element.getAttribute("id")).filter(Boolean),
+    );
+    function localSVGReference(reference) {
+      assert.ok(
+        isFragment(reference) && ids.has(reference.slice(1)),
+        `External or missing SVG resource ${reference} in ${filename}`,
+      );
+    }
+    for (const element of elements) {
+      assert.ok(
+        !["script", "foreignobject"].includes(element.localName.toLowerCase()),
+        `Active SVG content in ${filename}`,
+      );
+      for (const attribute of element.attributes) {
+        assert.ok(
+          !/^on/i.test(attribute.localName),
+          `SVG event handler in ${filename}`,
+        );
+        if (
+          attribute.localName.toLowerCase() === "href" &&
+          attribute.value.trim()
+        ) {
+          localSVGReference(attribute.value.trim());
+        }
+        for (const reference of cssURLs(attribute.value))
+          localSVGReference(reference);
+      }
+      if (element.localName.toLowerCase() === "style") {
+        const style = cssText(element.textContent);
+        assert.ok(
+          !/@import\b/i.test(style),
+          `SVG stylesheet import in ${filename}`,
+        );
+        for (const reference of cssURLs(style)) localSVGReference(reference);
+      }
+    }
+  } finally {
+    parsed.window.close();
+  }
+}
+
 for (const filename of (await files(path.join(root, "src"))).filter((p) =>
   p.endsWith(".js"),
 )) {
@@ -147,5 +259,5 @@ for (const filename of (await files(path.join(root, "src"))).filter((p) =>
   execFileSync(process.execPath, ["--check", filename], { stdio: "pipe" });
 }
 console.log(
-  `Static checks passed: Manifest V3; 3 scoped permissions; ${runtime.length} runtime files; icon sizes, CSP, local assets and source network checks.`,
+  `Static checks passed: Manifest V3; 3 scoped permissions; ${runtime.length} runtime files; icon sizes, CSP, local CSS assets, inert SVGs and source network checks.`,
 );

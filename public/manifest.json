@@ -3,10 +3,13 @@
   "name": "Pageleaf · 叶笺",
   "short_name": "Pageleaf",
   "description": "将当前网页或选中文本整理成可阅读、可批注、可导出的 Markdown 笔记。内容只在本机处理。",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minimum_chrome_version": "116",
   "permissions": ["activeTab", "scripting", "storage"],
-  "background": { "service_worker": "background.js", "type": "module" },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_title": "用叶笺整理当前网页",
     "default_icon": {
@@ -24,7 +27,10 @@
   },
   "commands": {
     "_execute_action": {
-      "suggested_key": { "default": "Alt+Shift+L", "mac": "Alt+Shift+L" },
+      "suggested_key": {
+        "default": "Alt+Shift+L",
+        "mac": "Alt+Shift+L"
+      },
       "description": "将当前网页整理为笔记"
     }
   },

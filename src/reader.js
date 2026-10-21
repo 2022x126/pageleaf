@@ -1,5 +1,12 @@
 import { sanitizeArticle, safeHttpURL } from "./content.js";
 import { buildMarkdown, noteFilename, searchNotes } from "./notes.js";
+import {
+  createBackup,
+  parseBackup,
+  planImport,
+  MAX_BACKUP_BYTES,
+} from "./backup.js";
+import { createReadingProgress } from "./progress.js";
 
 const $ = (id) => document.getElementById(id);
 // A browser preview is useful for contributors; it never uses a remote service.
@@ -36,6 +43,24 @@ let pendingDelete = "";
 let settings = { dark: false, fontSize: 18 };
 let toastTimer;
 let intersection;
+let pendingImport = null;
+const readingProgress = createReadingProgress({
+  storage: storage.local,
+  locks: navigator.locks,
+  window,
+  document,
+  onChange: (ratio) => {
+    const percent = Math.round(ratio * 100);
+    $("reading-progress").hidden = !article;
+    $("reading-progress").setAttribute("aria-valuenow", String(percent));
+    document.documentElement.style.setProperty(
+      "--reading-progress",
+      String(ratio),
+    );
+    $("progress-label").textContent = `${percent}%`;
+  },
+  onError: () => toast("阅读位置暂时无法保存，正文和笔记不受影响。"),
+});
 
 function toast(message) {
   clearTimeout(toastTimer);
@@ -205,6 +230,7 @@ function renderArticle(value) {
     renderLibrary();
     document.title = `${article.title} — 叶笺 Pageleaf`;
     window.scrollTo(0, 0);
+    void readingProgress.open(article.id, Boolean(savedVersion));
   } catch {
     reportError("这篇笔记的内容无法读取，请重新从原网页整理。");
   }
@@ -296,6 +322,7 @@ async function saveNote() {
     if (article?.id === requestedArticle.id) {
       article = result.next;
       savedVersion = result.next.updatedAt;
+      readingProgress.markSaved(article.id);
       dirty = false;
       updateSaveState();
       history.replaceState(null, "", `#note=${article.id}`);
@@ -326,12 +353,13 @@ async function deleteNote() {
   $("confirm-delete").disabled = true;
   try {
     await navigator.locks.request("pageleaf-notes-write", async () => {
-      await storage.local.remove(`note:${id}`);
+      await storage.local.remove([`note:${id}`, `progress:${id}`]);
     });
     pendingDelete = "";
     $("delete-dialog").close();
     if (article?.id === id) {
       article = null;
+      void readingProgress.open(null, false);
       dirty = false;
       savedVersion = "";
       show("welcome");
@@ -357,23 +385,126 @@ async function copyMarkdown() {
     toast("无法访问剪贴板，请使用“导出 .md”保存。");
   }
 }
+function downloadText(text, type, filename) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 15_000);
+}
 function exportMarkdown() {
   if (!article) return;
   try {
-    const url = URL.createObjectURL(
-      new Blob([buildMarkdown(article, $("personal-note").value)], {
-        type: "text/markdown;charset=utf-8",
-      }),
+    downloadText(
+      buildMarkdown(article, $("personal-note").value),
+      "text/markdown;charset=utf-8",
+      noteFilename(article.title),
     );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = noteFilename(article.title);
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 15_000);
     toast("已发起 Markdown 下载，请在浏览器下载列表中查看。");
   } catch {
     toast("导出失败，请尝试复制 Markdown。");
   }
+}
+function recordsFromStorage(data) {
+  return Object.entries(data)
+    .filter(
+      ([key, value]) =>
+        key.startsWith("note:") && value && typeof value.id === "string",
+    )
+    .map(([, value]) => value);
+}
+async function backupLibrary() {
+  $("backup-library").disabled = true;
+  try {
+    const records = await navigator.locks.request(
+      "pageleaf-notes-write",
+      async () => recordsFromStorage(await storage.local.get(null)),
+    );
+    if (!records.length) {
+      toast("笔记库为空，请先保存一篇笔记。");
+      return;
+    }
+    const json = createBackup(records);
+    downloadText(
+      json,
+      "application/json;charset=utf-8",
+      `pageleaf-backup-${new Date().toISOString().slice(0, 10)}.json`,
+    );
+    toast(`已发起 ${records.length} 篇笔记的备份下载。`);
+  } catch (error) {
+    toast(error.message || "备份失败，请重试。");
+  } finally {
+    $("backup-library").disabled = false;
+  }
+}
+async function previewImport(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  $("import-library").disabled = true;
+  try {
+    if (file.size > MAX_BACKUP_BYTES)
+      throw new Error("备份文件超过 20 MB 上限。");
+    const parsed = parseBackup(await file.text(), document);
+    const plan = planImport(
+      recordsFromStorage(await storage.local.get(null)),
+      parsed.notes,
+    );
+    pendingImport = parsed.notes;
+    $("import-summary").textContent =
+      `将恢复 ${plan.notesToAdd.length} 篇笔记，跳过 ${plan.skipped} 篇重复笔记。${parsed.warnings.length ? "已清理不安全的网页内容和链接。" : ""}`;
+    $("import-dialog").showModal();
+  } catch (error) {
+    pendingImport = null;
+    toast(error.message || "备份无法读取，请选择叶笺导出的 JSON 文件。");
+  } finally {
+    $("import-file").value = "";
+    $("import-library").disabled = false;
+  }
+}
+async function confirmImport() {
+  if (!pendingImport) return;
+  const incoming = pendingImport;
+  $("confirm-import").disabled = true;
+  try {
+    const plan = await navigator.locks.request(
+      "pageleaf-notes-write",
+      async () => {
+        const latest = recordsFromStorage(await storage.local.get(null));
+        const result = planImport(latest, incoming);
+        if (result.notesToAdd.length)
+          await storage.local.set(
+            Object.fromEntries(
+              result.notesToAdd.map((note) => [`note:${note.id}`, note]),
+            ),
+          );
+        return result;
+      },
+    );
+    pendingImport = null;
+    $("import-dialog").close();
+    await loadLibrary();
+    toast(
+      `已恢复 ${plan.notesToAdd.length} 篇笔记，跳过 ${plan.skipped} 篇重复笔记。`,
+    );
+  } catch (error) {
+    toast(
+      error.message?.includes("100")
+        ? error.message
+        : "恢复失败，可能是本机空间不足。已有笔记不会被覆盖。",
+    );
+  } finally {
+    $("confirm-import").disabled = false;
+  }
+}
+function preparePrint() {
+  $("print-note").textContent = $("personal-note").value.trim();
+  $("print-note").classList.toggle("empty", !$("print-note").textContent);
+}
+function printArticle() {
+  if (!article) return;
+  preparePrint();
+  window.print();
 }
 function demoArticle() {
   return {
@@ -406,6 +537,16 @@ $("search").addEventListener("input", renderLibrary);
 $("save").addEventListener("click", saveNote);
 $("copy").addEventListener("click", copyMarkdown);
 $("export").addEventListener("click", exportMarkdown);
+$("backup-library").addEventListener("click", backupLibrary);
+$("import-library").addEventListener("click", () => $("import-file").click());
+$("import-file").addEventListener("change", previewImport);
+$("confirm-import").addEventListener("click", confirmImport);
+$("cancel-import").addEventListener("click", () => $("import-dialog").close());
+$("import-dialog").addEventListener("close", () => {
+  pendingImport = null;
+});
+$("print").addEventListener("click", printArticle);
+window.addEventListener("beforeprint", preparePrint);
 $("help").addEventListener("click", () => $("help-dialog").showModal());
 $("theme").addEventListener("click", async () => {
   settings.dark = !settings.dark;

@@ -6,13 +6,15 @@ import { randomUUID } from "node:crypto";
 import { JSDOM } from "jsdom";
 import { sanitizeArticle, safeHttpURL } from "../src/content.js";
 import { buildMarkdown, noteFilename, searchNotes } from "../src/notes.js";
+import { createReadingProgress } from "../src/progress.js";
+import { createBackup, parseBackup, planImport, MAX_BACKUP_BYTES } from "../src/backup.js";
 
 const root = new URL("../", import.meta.url);
 const html = (
   await readFile(new URL("public/reader.html", root), "utf8")
 ).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
 const source = (await readFile(new URL("src/reader.js", root), "utf8")).replace(
-  /^import[^\n]*\n/gm,
+  /^import\s+[\s\S]*?\sfrom\s+["'][^"']+["'];?\s*(?:\r?\n|$)/gm,
   "",
 );
 
@@ -23,6 +25,10 @@ function note(id, overrides = {}) {
     url: `https://example.com/${id}`,
     siteName: "Example",
     author: "作者",
+    excerpt: "",
+    lang: "zh-CN",
+    publishedTime: "",
+    textContent: "正文小标题这是一篇用于验证本机保存行为的测试文章。",
     wordCount: 100,
     minutes: 1,
     capturedAt: "2026-10-20T08:00:00.000Z",
@@ -115,20 +121,40 @@ async function reader({
     url: `https://pageleaf.test/reader.html${hash}`,
   });
   const { window } = dom;
+  const downloads = [];
+  const blobs = new Map();
+  let printCalls = 0;
+  class TestURL extends URL {
+    static createObjectURL(blob) {
+      const url = `blob:https://pageleaf.test/${randomUUID()}`;
+      blobs.set(url, blob);
+      return url;
+    }
+    static revokeObjectURL(url) { blobs.delete(url); }
+  }
+  window.HTMLAnchorElement.prototype.click = function () {
+    downloads.push({ href: this.href, filename: this.download, blob: blobs.get(this.href) });
+  };
   window.scrollTo = () => {};
   window.confirm = () => true;
+  window.requestAnimationFrame = callback => window.setTimeout(() => callback(0), 0);
+  window.print = () => {
+    printCalls += 1;
+    window.dispatchEvent(new window.Event("beforeprint"));
+  };
   window.HTMLDialogElement.prototype.showModal = function () {
     this.open = true;
   };
   window.HTMLDialogElement.prototype.close = function () {
     this.open = false;
+    this.dispatchEvent(new window.Event("close"));
   };
   const context = vm.createContext({
     window,
     document: window.document,
     location: window.location,
     history: window.history,
-    URL,
+    URL: TestURL,
     URLSearchParams,
     Blob,
     TextEncoder,
@@ -153,13 +179,20 @@ async function reader({
     buildMarkdown,
     noteFilename,
     searchNotes,
+    createReadingProgress,
+    createBackup,
+    parseBackup,
+    planImport,
+    MAX_BACKUP_BYTES,
   });
   // An async function allows the real top-level await without SourceTextModule or flags.
   const script = new vm.Script(
-    `(async () => {\n${source}\nreturn {saveNote,deleteNote,renderArticle};\n})()`,
+    `(async () => {\n${source}\nreturn {saveNote,deleteNote,renderArticle,progress:typeof readingProgress === "undefined" ? null : readingProgress};\n})()`,
     { filename: "reader-under-test.js" },
   );
   const api = await script.runInContext(context);
+  // Complete the two restoration frames before tests begin pausing storage calls.
+  for (let frame = 0; frame < 4; frame += 1) await new Promise(resolve => setTimeout(resolve, 0));
   const element = (id) => window.document.getElementById(id);
   const edit = (text) => {
     element("personal-note").value = text;
@@ -174,8 +207,27 @@ async function reader({
     api,
     element,
     edit,
-    close: () => window.close(),
+    downloads,
+    getPrintCalls: () => printCalls,
+    async close() { await api.progress?.dispose(); window.close(); },
   };
+}
+
+async function until(predicate, description) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (predicate()) return;
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  assert.fail(`Timed out waiting for ${description}`);
+}
+
+function selectBackup(app, backup) {
+  const input = app.element("import-file");
+  Object.defineProperty(input, "files", {
+    configurable: true,
+    value: [{ name: "pageleaf-backup.json", size: new TextEncoder().encode(backup).length, type: "application/json", async text() { return backup; } }],
+  });
+  input.dispatchEvent(new app.window.Event("change", { bubbles: true }));
 }
 
 test("saving disables editing and prevents switching to a different library note", async (t) => {
@@ -319,4 +371,84 @@ test("storage rejection keeps unsaved notes available and re-enables controls", 
   assert.equal(app.element("personal-note").disabled, false);
   assert.match(app.element("save-state").textContent, /未保存/);
   assert.match(app.element("toast").textContent, /存储空间不足或不可用/);
+});
+
+test("the library backup download contains saved notes without settings or reading progress", async (t) => {
+  const local = memoryStorage({
+    "note:first": note("first", { note: "已经保存的笔记" }),
+    "settings": { dark: true, fontSize: 22 },
+    "progress:first": { ratio: 0.65, updatedAt: "2026-10-21T00:00:00Z" },
+    "capture:temporary": note("temporary"),
+  });
+  const app = await reader({ local });
+  t.after(app.close);
+  app.element("backup-library").click();
+  await until(() => app.downloads.length === 1, "the backup download");
+  const download = app.downloads[0];
+  assert.match(download.filename, /^pageleaf-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  assert.match(download.blob.type, /^application\/json/);
+  const envelope = JSON.parse(await download.blob.text());
+  assert.equal(envelope.format, "pageleaf-backup");
+  assert.equal(envelope.notes.length, 1);
+  assert.equal(envelope.notes[0].note, "已经保存的笔记");
+  assert.deepEqual(Object.keys(envelope).sort(), ["exportedAt", "format", "notes", "version"]);
+  assert.ok(!Object.hasOwn(envelope.notes[0], "settings"));
+  assert.ok(!Object.hasOwn(envelope.notes[0], "ratio"));
+  assert.equal(app.element("backup-library").disabled, false);
+});
+
+test("backup import previews changes, preserves existing notes and skips a repeated import", async (t) => {
+  const app = await reader();
+  t.after(app.close);
+  const original = structuredClone(app.local.values["note:first"]);
+  const backup = createBackup([
+    note("first", { note: "备份不能覆盖当前笔记" }),
+    note("third", { note: "来自备份的新笔记" }),
+  ]);
+  selectBackup(app, backup);
+  await until(() => app.element("import-dialog").open, "the import preview");
+  assert.match(app.element("import-summary").textContent, /恢复 1 篇.*跳过 1 篇/);
+  assert.equal(app.local.values["note:third"], undefined);
+  assert.deepEqual(app.local.values["note:first"], original);
+  app.element("confirm-import").click();
+  await until(() => !app.element("import-dialog").open && !app.element("confirm-import").disabled, "the confirmed import");
+  assert.equal(app.local.values["note:third"].note, "来自备份的新笔记");
+  assert.deepEqual(app.local.values["note:first"], original);
+  assert.equal(app.element("note-count").textContent, "3");
+  selectBackup(app, backup);
+  await until(() => app.element("import-dialog").open, "the repeated import preview");
+  assert.match(app.element("import-summary").textContent, /恢复 0 篇.*跳过 2 篇/);
+  app.element("confirm-import").click();
+  await until(() => !app.element("import-dialog").open && !app.element("confirm-import").disabled, "the repeated import result");
+  assert.equal(Object.keys(app.local.values).filter(key => key.startsWith("note:")).length, 3);
+  assert.deepEqual(app.local.values["note:first"], original);
+});
+
+test("closing the import preview clears pending notes without writing the library", async (t) => {
+  const app = await reader();
+  t.after(app.close);
+  selectBackup(app, createBackup([note("third")]));
+  await until(() => app.element("import-dialog").open, "the cancelable import preview");
+  app.element("cancel-import").click();
+  assert.equal(app.element("import-dialog").open, false);
+  // A late confirmation event after closing must not revive the previous file.
+  app.element("confirm-import").click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(app.local.values["note:third"], undefined);
+  assert.equal(app.element("note-count").textContent, "2");
+});
+
+test("printing includes the current unsaved personal note as text and refreshes it before print", async (t) => {
+  const app = await reader();
+  t.after(app.close);
+  app.edit('  未保存的想法 <img src="https://example.com/pixel">  ');
+  app.element("print").click();
+  assert.equal(app.getPrintCalls(), 1);
+  assert.equal(app.element("print-note").textContent, '未保存的想法 <img src="https://example.com/pixel">');
+  assert.equal(app.element("print-note").querySelector("img"), null);
+  assert.equal(app.local.values["note:first"].note, "");
+  app.edit("打印前又补充了一句话。");
+  app.window.dispatchEvent(new app.window.Event("beforeprint"));
+  assert.equal(app.element("print-note").textContent, "打印前又补充了一句话。");
+  assert.match(app.element("save-state").textContent, /未保存/);
 });

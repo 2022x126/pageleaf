@@ -42,7 +42,7 @@ export function searchNotes(notes, query) {
     .filter(
       (note) =>
         !needle ||
-        [note.title, note.url, note.note].some((x) =>
+        [note.title, note.url, note.note, note.textContent, note.markdown].some((x) =>
           String(x || "")
             .toLocaleLowerCase()
             .includes(needle),

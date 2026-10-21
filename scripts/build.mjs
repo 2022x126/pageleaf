@@ -23,4 +23,4 @@ await build({
   target: "chrome116",
   legalComments: "eof",
 });
-console.log("Built Pageleaf 0.1.0 → dist/");
+console.log("Built Pageleaf → dist/");
