@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>叶笺 Pageleaf — 让阅读留下来</title>
+    <link rel="icon" href="icons/icon-32.png" />
+    <link rel="stylesheet" href="reader.css" />
+    <script type="module" src="reader.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">跳至正文</a>
+    <header class="topbar">
+      <a class="brand" href="reader.html" aria-label="叶笺首页"
+        ><img src="icons/icon-32.png" alt="" width="32" height="32" /><strong
+          >叶笺<span>Pageleaf</span></strong
+        ></a
+      >
+      <div class="top-caption">为每一次认真阅读，留一页。</div>
+      <div class="top-actions">
+        <span id="privacy-status" class="local-badge"><i></i>只在本机</span
+        ><button
+          id="theme"
+          class="icon-button"
+          aria-label="切换深色模式"
+          title="切换深色模式"
+        >
+          ◐</button
+        ><button
+          id="help"
+          class="icon-button"
+          aria-label="使用帮助"
+          title="使用帮助"
+        >
+          ?
+        </button>
+      </div>
+    </header>
+    <p id="preview-notice" class="preview-notice" hidden>
+      网页预览：可试读和导出，笔记只保留在当前页面。安装扩展后才可持久保存。
+    </p>
+    <div class="workspace">
+      <aside class="library" aria-label="本机笔记库">
+        <div class="library-heading">
+          <h2>我的笔记</h2>
+          <span id="note-count">0</span>
+        </div>
+        <label class="search"
+          ><span aria-hidden="true">⌕</span
+          ><input
+            id="search"
+            type="search"
+            placeholder="搜索标题或笔记"
+            aria-label="搜索笔记"
+        /></label>
+        <div id="note-list" class="note-list"></div>
+        <p id="library-empty" class="empty-hint">
+          保存的文章会在这里。<br />先打开一篇文章，点击浏览器工具栏里的叶笺。
+        </p>
+        <div class="library-foot">
+          <div class="tiny-leaf">⌁</div>
+          <p>阅读在此，思考随行。</p>
+          <span>本机保存 · 无需账号</span>
+        </div>
+      </aside>
+      <main id="main" tabindex="-1">
+        <section id="welcome" class="welcome">
+          <div class="eyebrow">YOUR READING, KEPT.</div>
+          <h1>读过，<br />也留下。</h1>
+          <p class="welcome-copy">
+            把一篇好文章，变成自己的笔记。<br />少一点网页的喧闹，多一点思考的空间。
+          </p>
+          <button id="demo" class="primary">
+            试读一篇示例 <span aria-hidden="true">↗</span>
+          </button>
+          <div class="welcome-art" aria-hidden="true">
+            <div class="paper-back"></div>
+            <div class="paper-front">
+              <div class="paper-eyebrow">A LITTLE ROOM TO THINK</div>
+              <div class="paper-heading">在文字之间，<br />留一片空白。</div>
+              <div class="paper-rule"></div>
+              <div class="paper-lines"></div>
+              <div class="paper-leaf">⌁</div>
+            </div>
+          </div>
+          <div class="welcome-steps">
+            <div>
+              <b>01</b>
+              <h2>打开网页</h2>
+              <p>文章或选中的一段文字</p>
+            </div>
+            <div>
+              <b>02</b>
+              <h2>点一下叶笺</h2>
+              <p>正文与目录，清楚呈现</p>
+            </div>
+            <div>
+              <b>03</b>
+              <h2>留在你的笔记里</h2>
+              <p>写下想法，导出 Markdown</p>
+            </div>
+          </div>
+        </section>
+        <section id="error-view" class="error-view" hidden>
+          <div class="eyebrow">A SMALL PAUSE</div>
+          <h1>这一页，暂时读不到。</h1>
+          <p id="error-message"></p>
+          <p>你可以先选中需要的段落，再点击工具栏中的叶笺。</p>
+          <button id="error-demo" class="primary">先看看示例</button>
+        </section>
+        <section id="reader" hidden>
+          <div class="reader-toolbar">
+            <div class="reader-status">
+              <span id="capture-type">网页正文</span
+              ><span id="save-state">尚未保存</span>
+            </div>
+            <div class="toolbar-buttons">
+              <button
+                id="font-down"
+                class="text-button"
+                aria-label="缩小正文字号"
+              >
+                A−</button
+              ><button
+                id="font-up"
+                class="text-button"
+                aria-label="放大正文字号"
+              >
+                A+</button
+              ><span class="separator"></span
+              ><button id="copy" class="text-button">复制 Markdown</button
+              ><button id="export" class="text-button">导出 .md ↗</button
+              ><button id="save" class="primary small">保存笔记</button>
+            </div>
+          </div>
+          <div class="reading-layout">
+            <div class="reading-column">
+              <header class="article-header">
+                <div id="article-site" class="eyebrow"></div>
+                <h1 id="article-title"></h1>
+                <div id="article-meta" class="article-meta"></div>
+                <a
+                  id="source"
+                  class="source"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >查看原文 <span aria-hidden="true">↗</span></a
+                >
+                <p id="article-warning" class="article-warning" hidden></p>
+              </header>
+              <section class="annotation">
+                <label for="personal-note"><span>✎</span> 我的笔记</label
+                ><textarea
+                  id="personal-note"
+                  maxlength="20000"
+                  placeholder="这里记下你的想法、疑问，或下一步要做的事……"
+                  rows="3"
+                ></textarea
+                ><span class="note-tip">随文章一起保存和导出</span>
+              </section>
+              <article id="article-body" class="prose"></article>
+              <footer class="article-footer">
+                本页由叶笺在本机整理 · 请保留原文署名与来源
+              </footer>
+            </div>
+            <aside class="toc" aria-label="文章目录">
+              <h2>本页目录</h2>
+              <nav id="toc-links"></nav>
+              <p>慢慢读，<br />也留一点时间给思考。</p>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <dialog id="help-dialog">
+      <form method="dialog">
+        <button class="dialog-close icon-button" aria-label="关闭帮助">
+          ×
+        </button>
+      </form>
+      <div class="eyebrow">A GUIDE TO PAGELEAF</div>
+      <h2>让好文章，留下来。</h2>
+      <ol>
+        <li>打开普通文章网页；也可以先选中一段文字。</li>
+        <li>
+          点击 Chrome 工具栏的叶笺图标，或按 <kbd>⌥ / Alt</kbd> +
+          <kbd>Shift</kbd> + <kbd>L</kbd>。
+        </li>
+        <li>在阅读器中写笔记，保存到本机，或导出 Markdown。</li>
+      </ol>
+      <p>
+        请在 Chrome
+        的扩展菜单中将叶笺固定到工具栏。PDF、浏览器内部页面、扩展商店和部分应用页面无法提取。
+      </p>
+      <p>
+        未保存文章暂存在浏览器内存中，关闭浏览器后会清空；本机笔记保存在当前
+        Chrome 配置中，未加密。图片不会加载，网页内容不会上传。
+      </p>
+      <p>用导出按钮备份重要笔记；卸载扩展会删除本机笔记。</p>
+    </dialog>
+    <dialog id="delete-dialog">
+      <form method="dialog">
+        <button class="dialog-close icon-button" aria-label="取消删除">
+          ×
+        </button>
+      </form>
+      <div class="eyebrow">DELETE A NOTE</div>
+      <h2>删除这篇笔记？</h2>
+      <p id="delete-title"></p>
+      <p>删除后无法恢复。你可以先导出一份 Markdown 备份。</p>
+      <div class="dialog-actions">
+        <button id="cancel-delete" class="text-button">保留笔记</button
+        ><button id="confirm-delete" class="danger">确认删除</button>
+      </div>
+    </dialog>
+  </body>
+</html>

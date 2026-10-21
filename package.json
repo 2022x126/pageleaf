@@ -1,0 +1,23 @@
+{
+  "name": "pageleaf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first Chrome extension that turns articles into portable Markdown notes.",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.js",
+    "check": "npm test && npm run build && node scripts/check.mjs",
+    "package": "npm run build && node scripts/package.mjs"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "turndown": "^7.2.1",
+    "turndown-plugin-gfm": "^1.0.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "jsdom": "^26.1.0"
+  }
+}
