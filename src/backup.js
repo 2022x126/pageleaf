@@ -1,6 +1,7 @@
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import { CONTENT_LIMITS, safeHttpURL, sanitizeArticle } from "./content.js";
+import { validateAnnotations } from "./markup.js";
 
 export const MAX_BACKUP_BYTES = 20_000_000;
 export const BACKUP_LIMITS = Object.freeze({
@@ -81,6 +82,7 @@ function noteFields(record) {
     markdown: textField(record, "markdown", MARKDOWN_LIMIT),
     textContent: textField(record, "textContent", CONTENT_LIMITS.text),
     note: textField(record, "note", 20_000),
+    annotations: validateAnnotations(record.annotations),
     wordCount: 0,
     minutes: 1,
     capturedAt: isoDate(record, "capturedAt"),
@@ -217,6 +219,7 @@ export function parseBackup(json, document) {
     const wordCount = countWords(textContent);
     const note = {
       ...fields,
+      annotations: validateAnnotations(fields.annotations, fragment.content.textContent),
       url,
       content,
       textContent,

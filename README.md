@@ -1,65 +1,109 @@
-# Pageleaf · 叶笺
+# Pageleaf
 
-把网页整理成可阅读、可批注、可带走的笔记。
+Read an article. Add your thoughts. Keep a portable copy.
 
-Pageleaf 是一个在本机运行的 Chrome 扩展。点击扩展图标，提取当前文章或选中文字，写下自己的想法，再保存、检索或导出。**v0.2.0** 使用纯白与纯黑两种简洁界面，无需账号、API Key 或付费服务。
+Pageleaf is a local-first Chrome extension that turns web articles or selected text into readable notes. **v0.3.0** adds a proper Home, searchable Help center, Privacy page and About page, a new black-and-white identity, and seven interface languages. No account, API key or subscription is required.
 
-[English](README.en.md) · [隐私说明](PRIVACY.md) · [贡献指南](CONTRIBUTING.md) · [版本下载](https://github.com/2022x126/pageleaf/releases)
+[中文使用说明](README.md#中文使用说明) · [Website and demo](https://2022x126.github.io/pageleaf/) · [Privacy](PRIVACY.md) · [Contributing](CONTRIBUTING.md) · [Download development releases](https://github.com/2022x126/pageleaf/releases)
 
-![Pageleaf 纯白阅读器网页预览](docs/reader.png)
+![Pageleaf Home web preview](docs/home.png)
 
-## 功能
+## A complete starting point
 
-- **按需提取**：识别当前网页正文；选中文字时只整理选中内容。
-- **阅读与笔记**：文章目录、字号调整、纯白/纯黑外观和个人笔记。
-- **全文搜索**：搜索标题、来源、个人笔记、正文及 Markdown。
-- **本机笔记库**：明确点击保存后持久保留，支持打开和确认删除；仅为已保存笔记记录阅读位置，重新打开时继续阅读。
-- **Markdown**：复制或下载当前文章与个人笔记，保留来源、标题、列表、代码和简单表格。
-- **整库备份与恢复**：导出 JSON；恢复前显示预览并重新清理内容，跳过重复笔记，不覆盖已有笔记。
-- **打印 / 保存 PDF**：打开浏览器打印窗口，由你选择打印机或“另存为 PDF”。
+Home explains the product, offers a reader demo and leads to installation instructions. The Help center covers capture, saving, search, export, backups, shortcuts, troubleshooting and data deletion, with a search field for finding a topic. Privacy describes actual local storage and permissions; About includes project status, licenses and contribution links.
 
-界面不使用插画、渐变、纹理或远程字体。深色网页预览见 [reader-dark.png](docs/reader-dark.png)，欢迎页预览见 [welcome.png](docs/welcome.png)；这些图片不代表已安装扩展的实机验收。
+All four pages ship inside the extension. A new installation opens Home, and Chrome's extension options also opens Home. The reader links back to Home, Help and Privacy. These pages do not require an external service; links to GitHub are external and open only when selected.
 
-## 安装开发版
+## Languages and reading
 
-从版本页面下载安装 ZIP，解压后，在 `chrome://extensions` 开启「开发者模式」，点击「加载已解压的扩展程序」，选择包含 `manifest.json` 的目录。将 Pageleaf 固定到工具栏，打开普通 HTTP/HTTPS 文章后点击图标；也可使用 `Alt/⌥ + Shift + L`。
+The interface and product guides are available in:
 
-从源码构建需要 Node.js 22+ 和桌面版 Chrome：
+| Language | UI locale |
+| --- | --- |
+| English | `en` |
+| 简体中文 | `zh-CN` |
+| Español | `es` |
+| Français | `fr` |
+| Deutsch | `de` |
+| 日本語 | `ja` |
+| العربية | `ar` |
+
+Automatic selection follows browser language preferences, with English as the fallback. The language selector lets you choose a language explicitly after the initial automatic selection. Arabic uses a right-to-left interface; dates and numeric labels use locale-aware formatting. **Changing the interface language does not translate articles or personal notes.** Translation corrections and accessibility feedback are welcome; this does not claim native-speaker review or support for every language or website.
+
+The shared product name is Pageleaf, with 叶笺 used in the Chinese interface. The [Leaf-P logo](docs/BRAND.md) uses a bookmark spine and a leaf-shaped space, without language-specific lettering. The product keeps the minimal white/black design: no decorative backgrounds, gradients, textures or remote fonts.
+
+## Useful features
+
+- Capture an article on demand; selected text takes priority.
+- Read with a table of contents, adjustable type, white/black appearance and personal notes.
+- Select text to highlight it, underline it, or add a wavy underline. Draw with the pen; undo or clear your marks. Save to keep them.
+- Collect marked quotes, or the first sentence of each section, into a preview. Add the result to your note without replacing your writing. This uses original sentences, not an AI summary.
+- Search saved titles, source URLs, personal notes, article text and Markdown.
+- Explicitly save notes in the current Chrome profile; reopen saved notes at their last reading position. Deletion requires confirmation.
+- Copy or download Markdown with the source, article, your personal note and marked quotations. Pen strokes stay in the saved note and JSON backup; they are not converted to Markdown.
+- Export a whole-library JSON backup; preview a restore, re-sanitize content, skip duplicates and preserve existing notes.
+- Open the browser's print dialog to choose a printer or Save as PDF.
+
+![Reader web preview](docs/reader.png)
+
+## Install a development build
+
+Pageleaf is a development release and is **not published in the Chrome Web Store**. Download the installation ZIP from [Releases](https://github.com/2022x126/pageleaf/releases) and extract it. In desktop Chrome 116+, open `chrome://extensions`, enable Developer mode, select **Load unpacked**, and choose the extracted directory containing `manifest.json`. Pin Pageleaf, open an ordinary HTTP/HTTPS article and click its toolbar icon, or use `Alt/⌥ + Shift + L`.
+
+To build from source, use Node.js 22+:
 
 ```sh
 npm ci
 npm run check
 ```
 
-随后加载生成的 **`dist` 文件夹**，不要直接选择源码根目录或 ZIP 文件。
+Load the generated **`dist` directory**, not the source root or ZIP file. You can reopen Home from the extension's options. Capture still starts from the toolbar or shortcut on the article you want to read.
 
-## 备份与数据
+## Backup and local data
 
-JSON 备份文件上限为 **20 MB**，笔记库最多 **100 篇**，单篇保存或恢复的笔记最多 **1 MB**。恢复会先校验格式、大小和总篇数，再清理正文与链接、重建 Markdown；已有相同 ID，或相同来源、提取方式与正文的笔记会跳过。备份仅包含笔记，不包含阅读进度和显示偏好。大于备份上限时，可先逐篇导出 Markdown 并缩减笔记库。
+The library is limited to **100 notes**, each saved or restored note to **1 MB**, and a JSON backup to **20 MB**. Restoration validates format, sizes and the resulting library count before writing. Existing IDs and matching source/extraction-mode/article-text combinations are skipped; existing notes are not overwritten. Backups contain notes only, excluding reading positions and language/display preferences. If the library exceeds the backup file limit, export individual Markdown files before reducing it.
 
-内容只在本机处理。未保存摘录暂存于浏览器会话内存，最多 6 份，新提取时清理超过 24 小时的记录；浏览器退出时清空。明确保存的笔记、阅读位置与偏好保存在当前 Chrome 配置中，未额外加密。删除笔记同时删除其阅读位置，不会删除已导出的 Markdown、JSON 或 PDF 文件。
+Unsaved captures stay in browser session memory, with at most six records. Captures older than 24 hours are pruned when a new capture is made; browser exit clears session captures. Explicitly saved notes, reading positions and preferences stay in the current Chrome profile without additional encryption. Deleting a note also deletes its reading position, but not exported files or printed copies. Back up before uninstalling or changing profiles.
 
-权限仅为 `activeTab`、`scripting`、`storage`，没有常驻站点权限、遥测或云同步。阅读器不自动加载原文图片和嵌入资源；主动打开来源或文中链接时，浏览器才访问对应网站。来源和文中链接会移除凭据、查询参数及片段，部分依赖查询参数的链接可能需要手动补充。详情见 [PRIVACY.md](PRIVACY.md)。
+Permissions remain `activeTab`, `scripting` and `storage`. There is no persistent host access, telemetry or cloud sync. Original article images and embeds are removed. Source and article links have credentials, query strings and fragments stripped; some links may need manual correction. Opening an external link is a browser navigation to that site's service. See [PRIVACY.md](PRIVACY.md).
 
-## 开发与验证
+## Development and verification
 
 ```sh
-npm test         # 针对提取、安全、存储与阅读器行为的测试
-npm run build    # 构建 dist，运行时不需要 node_modules
-npm run check    # 测试、构建、权限、资源与 CSP 检查
-npm run package  # 在项目上级目录生成安装包和源码包
+npm test                         # extraction, safety, storage and interface behavior
+npm run build                    # build dist; no node_modules needed at runtime
+npm run check                    # tests, build, permissions, resources and CSP checks
+npm run package                  # install/source ZIPs in the parent directory
+npm run build:site               # standalone static product site in site-dist
+node scripts/generate-icons.mjs  # reproduce SVG and correctly sized PNG icons
 ```
 
-依赖版本由锁文件固定，运行时代码全部随扩展打包。许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。维护约定见 [MAINTENANCE.md](docs/MAINTENANCE.md)。
+All runtime code and product translations are bundled. Dependency versions are fixed by the lockfile. See [third-party licenses](THIRD_PARTY_NOTICES.md), [maintenance notes](docs/MAINTENANCE.md) and [validation notes](docs/VALIDATION.md).
 
-已完成的检查与剩余验收见 [VALIDATION.md](docs/VALIDATION.md)。网页预览和自动化测试不能代替真实扩展的加载、工具栏提取、重启持久化和文件下载验证。
+Automated tests and web previews do not replace installed Chrome checks for toolbar capture, browser-restart persistence or downloaded files. Screenshots in this README show public sample content in a web preview; they do not imply Chrome Web Store publication or installed-extension acceptance.
 
-## 边界与开源
+## Local product preview
 
-v0.2.0 是开发版本，尚未上架 Chrome 网上应用店。提取取决于网页结构；PDF、图片/视频文章、浏览器内部页面和部分复杂网页不支持。不会绕过登录、付费墙或访问控制，也不获取未加载的分页或 iframe 内容。图片会被移除，复杂表格和公式可能需要手工调整。
+After building, run `python3 -m http.server 8765 --bind 127.0.0.1` from the project directory. Open `http://127.0.0.1:8765/dist/index.html` for Home or `http://127.0.0.1:8765/dist/reader.html?demo` for the reader sample. Language and white/black appearance choices may persist in this site's local browser storage; **preview articles and notes stay in page memory and disappear on refresh**. Export anything you want to keep. The preview cannot capture another browser tab.
 
-原创代码使用 [MIT License](LICENSE)，网页内容仍属于原作者。问题反馈：[GitHub Issues](https://github.com/2022x126/pageleaf/issues)。
+`npm run build:site` also builds the standalone static product site in `site-dist` without the extension manifest or background worker. Hosting and deployment boundaries are documented in [WEBSITE.md](docs/WEBSITE.md). A hosted product site makes normal requests to its hosting provider for pages and assets; it still does not upload preview articles or notes. A generated site is not proof of a live deployment.
 
-## 本地网页预览
+## Limits and open source
 
-构建后，在项目根目录运行 `python3 -m http.server 8765 --bind 127.0.0.1`，打开 `http://127.0.0.1:8765/dist/reader.html?demo`。预览中的笔记只保留在当前页面，刷新会清空；需要保留时请导出。
+Extraction depends on page structure. PDFs, image/video-only content, browser internal pages and some complex applications are unsupported. Pageleaf does not bypass logins, paywalls or access controls, or fetch unloaded pagination/iframe contents. Images are omitted; complex tables and formulas may need manual correction. Desktop Chrome is the current target; mobile browsers and other browser configurations have no blanket compatibility guarantee.
+
+Original code is [MIT licensed](LICENSE). Captured articles remain subject to their authors' rights; keep source attribution when sharing. Report reproducible problems or translation corrections through [GitHub Issues](https://github.com/2022x126/pageleaf/issues), without uploading private articles, notes or backups.
+
+## 中文使用说明
+
+Pageleaf（叶笺）可以保存网页文章、划重点、写笔记。0.3.0 加入主页、帮助中心、隐私说明和关于页面，支持七种界面语言，以及纯白、纯黑外观。切换界面语言不会翻译文章和你的笔记。
+
+从 [Releases](https://github.com/2022x126/pageleaf/releases) 下载安装 ZIP 并解压。在电脑版 Chrome 的 `chrome://extensions` 开启开发者模式，点“加载已解压的扩展程序”，选择包含 `manifest.json` 的文件夹。如果自己构建源码，就选择 `dist`。目前还没上架 Chrome 应用商店。
+
+打开文章，点 Chrome 工具栏里的 Pageleaf；只想保存几段话，就先选中文字。进入阅读页后，可以划重点、加下划线或波浪线，也可以用画笔圈画。点“整理重点”查看摘录，再决定是否标回原文或加入自己的笔记。最后点“保存笔记”。
+
+已保存的文章和笔记都能搜索，下次打开会接着上次读。可以复制或导出 Markdown、打印成 PDF，也可以备份整个笔记库。Markdown 包含划线原句，不包含画笔；JSON 备份保留画笔和文字标记。
+
+笔记库最多 100 篇，单篇不超过 1 MB，备份文件不超过 20 MB。恢复备份时会跳过重复笔记，不覆盖已有内容；备份不含阅读位置和显示偏好。
+
+文章和笔记在本机处理，不会上传。没点保存的内容只是临时保留；在线试用刷新后就会清空，请及时导出。卸载扩展或换电脑前，记得备份。权限只有 `activeTab`、`scripting`、`storage`，用途见[隐私说明](PRIVACY.md#中文说明)；验证情况见[实际验证记录](docs/VALIDATION.md)。

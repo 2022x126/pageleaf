@@ -1,230 +1,158 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>叶笺 Pageleaf — 让阅读留下来</title>
-    <link rel="icon" href="icons/icon-32.png" />
-    <link rel="stylesheet" href="reader.css" />
+<!DOCTYPE html><html lang="en" dir="ltr"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pageleaf — Read, note, keep</title>
+    <link rel="icon" href="icons/icon-32.png">
+    <link rel="stylesheet" href="reader.css">
     <script type="module" src="reader.js"></script>
   </head>
   <body>
-    <a class="skip" href="#main">跳至正文</a>
+    <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
     <header class="topbar">
-      <a class="brand" href="reader.html" aria-label="叶笺首页"
-        ><img src="icons/icon-32.png" alt="" width="32" height="32" /><strong
-          >叶笺<span>Pageleaf</span></strong
-        ></a
-      >
+      <a class="brand" href="index.html" aria-label="Pageleaf home" data-reader-exit="" data-i18n-label="homeLabel"><img src="assets/logo.svg" alt="" width="32" height="32"><strong>Pageleaf</strong></a><nav class="reader-nav" data-i18n-label="navigation" aria-label="Main navigation"><a href="index.html" data-reader-exit="" data-i18n="reader-nav-home">Home</a><a href="help.html" data-reader-exit="" data-i18n="reader-nav-help">Help</a><a href="privacy.html" data-reader-exit="" data-i18n="reader-nav-privacy">Privacy</a><a href="about.html" data-reader-exit="" data-i18n="reader-nav-about">About</a></nav>
 
-      <div class="top-actions">
-        <span id="privacy-status" class="local-badge"><i></i>只在本机</span
-        ><button
-          id="theme"
-          class="icon-button"
-          aria-label="切换深色模式"
-          title="切换深色模式"
-        >
-          ◐</button
-        ><button
-          id="help"
-          class="icon-button"
-          aria-label="使用帮助"
-          title="使用帮助"
-        >
+      <div class="top-actions"><select id="language" class="language-select" data-i18n-label="language" aria-label="Language"><option value="en">English</option><option value="zh-CN">简体中文</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="ja">日本語</option><option value="ar">العربية</option></select>
+        <span id="privacy-status" class="local-badge">On this device</span><button id="theme" class="icon-button" aria-label="Switch to dark mode" title="Switch to dark mode">
+          ◐</button><button id="help" class="icon-button" aria-label="Quick help" title="Quick help" data-i18n-label="help" data-i18n-title="help">
           ?
         </button>
       </div>
     </header>
-    <p id="preview-notice" class="preview-notice" hidden>
-      网页预览：可试读和导出，笔记只保留在当前页面。安装扩展后才可持久保存。
-    </p>
+    <p id="preview-notice" class="preview-notice" hidden="" data-i18n="previewNotice">Preview: try reading and exporting. Notes last only for this page; install the extension to keep them.</p>
     <div class="workspace">
-      <aside class="library" aria-label="本机笔记库">
+      <aside class="library" aria-label="Local library" data-i18n-label="library">
         <div class="library-heading">
-          <h2>我的笔记</h2>
+          <h2 data-i18n="myNotes">My notes</h2>
           <span id="note-count">0</span>
         </div>
-        <label class="search"
-          ><span aria-hidden="true">⌕</span
-          ><input
-            id="search"
-            type="search"
-            placeholder="搜索笔记全文"
-            aria-label="搜索笔记"
-        /></label>
+        <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search all note content" aria-label="Search notes" data-i18n-label="searchLabel" data-i18n-placeholder="searchPlaceholder"></label>
         <div class="library-actions">
-          <button id="backup-library" class="text-button">备份</button
-          ><button id="import-library" class="text-button">恢复备份</button>
+          <button id="backup-library" class="text-button" data-i18n="backup">Back up</button><button id="import-library" class="text-button" data-i18n="restore">Restore backup</button>
         </div>
-        <input
-          id="import-file"
-          type="file"
-          accept=".json,application/json"
-          hidden
-        />
+        <input id="import-file" type="file" accept=".json,application/json" hidden="">
         <div id="note-list" class="note-list"></div>
-        <p id="library-empty" class="empty-hint">
-          保存的文章会在这里。<br />先打开一篇文章，点击浏览器工具栏里的叶笺。
-        </p>
+        <p id="library-empty" class="empty-hint">Saved articles appear here. Open an article and click Pageleaf in your browser toolbar.</p>
       </aside>
       <main id="main" tabindex="-1">
         <section id="welcome" class="welcome">
-          <h1>把网页整理成笔记</h1>
-          <p class="welcome-copy">
-            提取正文，记下想法，导出 Markdown。<br />无需账号，内容保留在本机。
-          </p>
-          <button id="demo" class="primary">打开示例</button>
+          <h1 data-i18n="welcomeTitle">Turn web pages into notes</h1>
+          <p class="welcome-copy" data-i18n="welcomeCopy">Extract the text, add your thoughts, export Markdown. No account needed. Your content stays on this device.</p>
+          <button id="demo" class="primary" data-i18n="demo">Open sample</button>
           <section class="welcome-instructions">
-            <h2>开始使用</h2>
+            <h2 data-i18n="getStarted">Get started</h2>
             <ol>
-              <li>打开一篇网页文章，也可以先选中需要的文字。</li>
-              <li>点击 Chrome 工具栏中的叶笺图标。</li>
-              <li>写笔记、保存到本机，或导出文件。</li>
+              <li data-i18n="step1">Open a web article, or select the text you want to keep.</li>
+              <li data-i18n="step2">Click the Pageleaf icon in the Chrome toolbar.</li>
+              <li data-i18n="step3">Add a note, save locally, or export a file.</li>
             </ol>
           </section>
         </section>
-        <section id="error-view" class="error-view" hidden>
-          <h1>这一页，暂时读不到。</h1>
+        <section id="error-view" class="error-view" hidden="">
+          <h1 data-i18n="errorTitle">This page could not be read</h1>
           <p id="error-message"></p>
-          <p>你可以先选中需要的段落，再点击工具栏中的叶笺。</p>
-          <button id="error-demo" class="primary">先看看示例</button>
+          <p data-i18n="errorHint">Try selecting a few paragraphs, then click Pageleaf in the toolbar again.</p>
+          <button id="error-demo" class="primary" data-i18n="demo">Open sample</button>
         </section>
-        <section id="reader" hidden>
+        <section id="reader" hidden="">
           <div class="reader-toolbar">
             <div class="reader-status">
-              <span id="capture-type">网页正文</span
-              ><span id="save-state">尚未保存</span
-              ><span id="progress-label" title="已保存的笔记会记住阅读位置"
-                >0%</span
-              >
+              <span id="capture-type">Web article</span><span id="save-state">Not saved</span><span id="progress-label" title="Saved notes remember your reading position" data-i18n-title="progressHint">0%</span>
             </div>
             <div class="toolbar-buttons">
-              <button
-                id="font-down"
-                class="text-button"
-                aria-label="缩小正文字号"
-              >
-                A−</button
-              ><button
-                id="font-up"
-                class="text-button"
-                aria-label="放大正文字号"
-              >
-                A+</button
-              ><span class="separator"></span
-              ><button id="copy" class="text-button">复制 Markdown</button
-              ><button id="export" class="text-button">导出 .md</button
-              ><button id="print" class="text-button">打印 / PDF</button
-              ><button id="save" class="primary small">保存笔记</button>
+              <button id="font-down" class="text-button" aria-label="Decrease article font size" data-i18n-label="fontDown">
+                A−</button><button id="font-up" class="text-button" aria-label="Increase article font size" data-i18n-label="fontUp">
+                A+</button><span class="separator"></span><button id="copy" class="text-button" data-i18n="copy">Copy Markdown</button><button id="export" class="text-button" data-i18n="export">Export .md</button><button id="print" class="text-button" data-i18n="print">Print / PDF</button><button id="save" class="primary small">Save note</button>
             </div>
+          </div>
+          <div class="annotation-toolbar" role="toolbar" data-i18n-label="markTools" aria-label="Mark up this article">
+            <div class="annotation-buttons">
+              <button type="button" data-mark="highlight" data-i18n="markHighlight">Highlight</button>
+              <button type="button" data-mark="underline" data-i18n="markUnderline">Underline</button>
+              <button type="button" data-mark="wavy" data-i18n="markWavy">Wavy line</button>
+              <span class="separator" aria-hidden="true"></span>
+              <button type="button" id="pen" data-i18n="pen" aria-pressed="false">Pen</button>
+              <button type="button" id="undo-mark" data-i18n="undoLast">Undo mark</button>
+              <button type="button" id="clear-marks" data-i18n="clearMarks">Clear marks</button>
+              <button type="button" id="jump-note" data-i18n="mdNotes">My note</button>
+              <button type="button" id="organize" class="organize-button" data-i18n="organize">Collect key points</button>
+            </div>
+            <p id="annotation-hint" data-i18n="selectionHint">Select text, then choose a mark. Save your note to keep the marks.</p>
           </div>
           <div class="reading-layout">
             <div class="reading-column">
               <header class="article-header">
-                <div id="article-site" class="eyebrow"></div>
-                <h1 id="article-title"></h1>
+                <div id="article-site" class="eyebrow" dir="auto"></div>
+                <h1 id="article-title" dir="auto"></h1>
                 <div id="article-meta" class="article-meta"></div>
-                <a
-                  id="source"
-                  class="source"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  >查看原文 <span aria-hidden="true">↗</span></a
-                >
-                <p id="article-warning" class="article-warning" hidden></p>
+                <a id="source" class="source" target="_blank" rel="noopener noreferrer" data-i18n="source">View original ↗</a>
+                <p id="article-warning" class="article-warning" hidden=""></p>
               </header>
+
+              <div id="article-surface" class="article-surface"><article id="article-body" class="prose" dir="auto"></article><svg id="pen-layer" class="pen-layer" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"></svg></div>
               <section class="annotation">
-                <label for="personal-note">我的笔记</label
-                ><textarea
-                  id="personal-note"
-                  maxlength="20000"
-                  placeholder="这里记下你的想法、疑问，或下一步要做的事……"
-                  rows="2"
-                ></textarea>
+                <label for="personal-note" data-i18n="myNotes">My notes</label><textarea id="personal-note" maxlength="20000" placeholder="Write a thought, a question, or a next step…" rows="2" data-i18n-placeholder="notePlaceholder" dir="auto"></textarea>
                 <div id="print-note" class="print-note"></div>
-                <span class="note-tip">随文章一起保存和导出</span>
+                <span class="note-tip" data-i18n="noteTip">Saved and exported with the article</span>
               </section>
-              <article id="article-body" class="prose"></article>
-              <footer class="article-footer">
-                内容在本机整理 · 请保留原文署名与来源
-              </footer>
+              <footer class="article-footer" data-i18n="footer">Processed on this device · Keep the original credit and source</footer>
             </div>
-            <aside class="toc" aria-label="文章目录">
-              <h2>本页目录</h2>
+            <aside class="toc" aria-label="On this page" data-i18n-label="contents">
+              <h2 data-i18n="contents">On this page</h2>
               <nav id="toc-links"></nav>
             </aside>
           </div>
         </section>
       </main>
     </div>
-    <div
-      id="reading-progress"
-      role="progressbar"
-      aria-label="阅读进度"
-      aria-valuemin="0"
-      aria-valuemax="100"
-      aria-valuenow="0"
-      hidden
-    ></div>
-    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <div id="reading-progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden="" data-i18n-label="progress"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden=""></div>
     <dialog id="help-dialog">
       <form method="dialog">
-        <button class="dialog-close icon-button" aria-label="关闭帮助">
+        <button class="dialog-close icon-button" aria-label="Close help" data-i18n-label="closeHelp">
           ×
         </button>
       </form>
 
-      <h2>使用帮助</h2>
+      <h2 data-i18n="help">Quick help</h2>
       <ol>
-        <li>打开普通文章网页；也可以先选中一段文字。</li>
-        <li>
-          点击 Chrome 工具栏的叶笺图标，或按 <kbd>⌥ / Alt</kbd> +
-          <kbd>Shift</kbd> + <kbd>L</kbd>。
-        </li>
-        <li>在阅读器中写笔记，保存到本机，或导出 Markdown。</li>
+        <li data-i18n="step1">Open a web article, or select the text you want to keep.</li>
+        <li data-i18n="helpShortcut">Click Pageleaf in the Chrome toolbar, or press Alt/Option + Shift + L (if available).</li>
+        <li data-i18n="step3">Add a note, save locally, or export a file.</li>
       </ol>
-      <p>
-        请在 Chrome
-        的扩展菜单中将叶笺固定到工具栏。PDF、浏览器内部页面、扩展商店和部分应用页面无法提取。
-      </p>
-      <p>
-        未保存文章暂存在浏览器内存中，关闭浏览器后会清空；本机笔记保存在当前
-        Chrome 配置中，未加密。图片不会加载，网页内容不会上传。
-      </p>
-      <p>
-        搜索会检索标题、正文、来源和个人笔记。左侧“备份”可下载整库
-        JSON，“恢复备份”会添加不重复的笔记。备份文件只保存在你选择的位置。
-      </p>
-      <p>
-        已保存笔记会自动记住阅读位置。“打印 /
-        PDF”会打开浏览器打印窗口，可选择保存为 PDF。
-      </p>
-      <p>卸载扩展会删除本机笔记，请定期备份。</p>
+      <p data-i18n="helpUnsupported">Pin Pageleaf from Chrome’s extensions menu. PDFs, internal browser pages, extension stores and some app pages cannot be captured.</p>
+      <p data-i18n="helpStorage">Unsaved captures are temporary and disappear when the browser closes. Saved notes stay in this Chrome profile, unencrypted. Images are not loaded and article content is not uploaded.</p>
+      <p data-i18n="helpBackup">Search covers titles, article text, sources and personal notes. Back up downloads a JSON copy of saved notes. Restore adds new notes and skips duplicates. Keep backup files private.</p>
+      <p data-i18n="helpPrint">Saved notes remember your reading position. Print / PDF opens the browser print dialog, where you can save a PDF. Unsaved personal notes are included.</p>
+      <p data-i18n="helpUninstall">Uninstalling the extension deletes its local notes. Back up regularly.</p>
+    <p><a href="help.html" data-reader-exit="" data-i18n="reader-nav-help">Help</a></p></dialog>
+    <dialog id="organize-dialog">
+      <h2 data-i18n="organizeTitle">Collected key points</h2>
+      <p id="organize-hint"></p>
+      <div id="organize-preview" dir="auto"></div>
+      <div class="dialog-actions"><button id="cancel-organize" data-i18n="cancel" class="text-button">Cancel</button><button id="mark-organized" data-i18n="markInArticle" class="text-button">Mark in article</button><button id="append-organize" data-i18n="appendToNote" class="primary small">Add to my note</button></div>
     </dialog>
     <dialog id="import-dialog">
-      <h2>恢复笔记备份</h2>
+      <h2 data-i18n="restoreTitle">Restore note backup</h2>
       <p id="import-summary"></p>
-      <p>只添加未重复的笔记，不覆盖已有内容。</p>
+      <p data-i18n="restoreHint">Only new notes are added. Existing notes are never overwritten.</p>
       <div class="dialog-actions">
-        <button id="cancel-import" class="text-button">取消</button
-        ><button id="confirm-import" class="primary small">确认恢复</button>
+        <button id="cancel-import" class="text-button" data-i18n="cancel">Cancel</button><button id="confirm-import" class="primary small" data-i18n="confirmRestore">Restore notes</button>
       </div>
     </dialog>
     <dialog id="delete-dialog">
       <form method="dialog">
-        <button class="dialog-close icon-button" aria-label="取消删除">
+        <button class="dialog-close icon-button" aria-label="Cancel deletion" data-i18n-label="cancelDelete">
           ×
         </button>
       </form>
 
-      <h2>删除这篇笔记？</h2>
-      <p id="delete-title"></p>
-      <p>删除后无法恢复。你可以先导出一份 Markdown 备份。</p>
+      <h2 data-i18n="deleteTitle">Delete this note?</h2>
+      <p id="delete-title" dir="auto"></p>
+      <p data-i18n="deleteHint">Deletion cannot be undone. Export a Markdown copy first if you need it.</p>
       <div class="dialog-actions">
-        <button id="cancel-delete" class="text-button">保留笔记</button
-        ><button id="confirm-delete" class="danger">确认删除</button>
+        <button id="cancel-delete" class="text-button" data-i18n="keepNote">Keep note</button><button id="confirm-delete" class="danger" data-i18n="confirmDelete">Delete note</button>
       </div>
     </dialog>
-  </body>
-</html>
+
+
+</body></html>

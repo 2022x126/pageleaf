@@ -7,6 +7,10 @@ import {
   MAX_BACKUP_BYTES,
 } from "./backup.js";
 import { createReadingProgress } from "./progress.js";
+import { getSelectionAnnotation, renderAnnotations, validateAnnotations, ANNOTATION_LIMITS } from "./markup.js";
+import { demoArticle as makeDemoArticle } from "./demo.js";
+import { organizeArticle } from "./organize.js";
+import { resolveLanguage, t, formatNumber, formatDate, formatMinutes, translateDocument, localizeMessage } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 // A browser preview is useful for contributors; it never uses a remote service.
@@ -40,16 +44,24 @@ let dirty = false;
 let saving = false;
 let savedVersion = "";
 let pendingDelete = "";
-let settings = { dark: false, fontSize: 18 };
+let settings = { dark: false, fontSize: 18, language: "en" };
+const tr = (key, params) => t(settings.language, key, params);
+let importSummary = null;
+let currentError = "";
+let progressRatio = 0;
 let toastTimer;
 let intersection;
 let pendingImport = null;
+let penActive = false;
+let activeStroke = null;
+let organizedDraft = null;
 const readingProgress = createReadingProgress({
   storage: storage.local,
   locks: navigator.locks,
   window,
   document,
   onChange: (ratio) => {
+    progressRatio = ratio;
     const percent = Math.round(ratio * 100);
     $("reading-progress").hidden = !article;
     $("reading-progress").setAttribute("aria-valuenow", String(percent));
@@ -57,9 +69,9 @@ const readingProgress = createReadingProgress({
       "--reading-progress",
       String(ratio),
     );
-    $("progress-label").textContent = `${percent}%`;
+    $("progress-label").textContent = new Intl.NumberFormat(settings.language, { style: "percent" }).format(ratio);
   },
-  onError: () => toast("阅读位置暂时无法保存，正文和笔记不受影响。"),
+  onError: () => toast(tr("progressError")),
 });
 
 function toast(message) {
@@ -75,28 +87,29 @@ function show(view) {
     $(id).hidden = id !== view;
 }
 function reportError(message) {
-  $("error-message").textContent = message;
+  currentError = message;
+  $("error-message").textContent = localizeMessage(settings.language, message);
   show("error-view");
 }
 function canLeave() {
   if (saving) {
-    toast("正在保存，请稍候。");
+    toast(tr("saving"));
     return false;
   }
   return (
     !dirty ||
-    window.confirm("你修改的笔记尚未保存。离开后这些修改会丢失，仍要继续吗？")
+    window.confirm(tr("leave"))
   );
 }
 function updateSaveState() {
   $("save-state").textContent = dirty
-    ? "有未保存的修改"
+    ? tr("unsavedChanges")
     : savedVersion
       ? isPreview
-        ? "仅当前预览已保存"
-        : "已保存到本机"
-      : "尚未保存";
-  $("save").textContent = savedVersion ? "保存修改" : "保存笔记";
+        ? tr("savedPreview")
+        : tr("savedLocal")
+      : tr("notSaved");
+  $("save").textContent = savedVersion ? tr("saveChanges") : tr("saveNote");
 }
 function makeText(tag, text, className = "") {
   const element = document.createElement(tag);
@@ -112,21 +125,75 @@ function updateSettings() {
   );
   $("theme").setAttribute(
     "aria-label",
-    settings.dark ? "切换浅色模式" : "切换深色模式",
+    settings.dark ? tr("light") : tr("dark"),
   );
   $("theme").setAttribute(
     "title",
-    settings.dark ? "切换浅色模式" : "切换深色模式",
+    settings.dark ? tr("light") : tr("dark"),
   );
   $("font-down").disabled = settings.fontSize <= 15;
   $("font-up").disabled = settings.fontSize >= 26;
+  if ($("annotation-hint")) $("annotation-hint").textContent = tr(penActive ? "penHint" : "selectionHint");
 }
 async function saveSettings() {
   updateSettings();
   try {
     await storage.local.set({ settings });
+    if (isPreview) {
+      try {
+        window.localStorage.setItem("pageleaf-language", settings.language);
+        window.localStorage.setItem("pageleaf-dark", String(settings.dark));
+      } catch { /* Preferences are optional in the web preview. */ }
+    }
   } catch {
-    toast("显示设置暂时无法保存。");
+    toast(tr("settingsError"));
+  }
+}
+
+function updateArticleLabels() {
+  if (!article) return;
+  $("article-title").textContent = article.title;
+  $("article-site").textContent = article.siteName || tr("web");
+  const meta = [article.author, tr("aboutMinutes", {time: formatMinutes(settings.language, article.minutes)})];
+  if (article.publishedTime) meta.push(formatDate(settings.language, article.publishedTime));
+  $("article-meta").textContent = meta.filter(Boolean).join(" · ");
+  $("capture-type").textContent = tr(article.mode === "demo" ? "captureDemo" : article.mode === "selection" ? "captureSelection" : "captureArticle");
+  $("source").hidden = !article.url;
+  if (article.url) $("source").href = article.url;
+  else $("source").removeAttribute("href");
+  $("article-warning").textContent = article.mode === "demo"
+    ? tr("demoWarning", {language: new Intl.DisplayNames([settings.language], {type: "language"}).of(article.lang || "en")})
+    : (article.warnings || []).map(message => localizeMessage(settings.language, message)).join(" ");
+  $("article-warning").hidden = !article.warnings?.length || (article.mode === "demo" && resolveLanguage(article.lang) === settings.language);
+}
+function updateImportSummary() {
+  if (!importSummary) return;
+  $("import-summary").textContent = tr("importPreview", {add: formatNumber(settings.language, importSummary.add), skip: formatNumber(settings.language, importSummary.skip)}) + (importSummary.sanitized ? ` ${tr("sanitized")}` : "");
+}
+function applyLanguage() {
+  translateDocument(document, settings.language);
+  if ($("language")) $("language").value = settings.language;
+  const badge = $("privacy-status");
+  if (badge) badge.textContent = tr(isPreview ? "preview" : "local");
+  updateSettings();
+  updateSaveState();
+  renderLibrary();
+  updateArticleLabels();
+  updateImportSummary();
+  if (currentError) $("error-message").textContent = localizeMessage(settings.language, currentError);
+  $("progress-label").textContent = new Intl.NumberFormat(settings.language, {style: "percent"}).format(progressRatio);
+  // Updating labels must never recreate the editor or discard an unsaved draft.
+  if (article) {
+    document.title = `${article.title} — Pageleaf`;
+    if (!$("article-body").querySelector("h1,h2,h3")) {
+      const empty = $("toc-links").querySelector(".empty-hint");
+      if (empty) empty.textContent = tr("noHeadings");
+    }
+  } else document.title = tr("title");
+  for (const link of document.querySelectorAll("[data-reader-exit], .brand, .reader-nav a")) {
+    const url = new URL(link.getAttribute("href"), location.href);
+    url.searchParams.set("lang", settings.language);
+    link.setAttribute("href", `${url.pathname.split("/").pop()}${url.search}${url.hash}`);
   }
 }
 
@@ -146,23 +213,23 @@ async function loadLibrary() {
 }
 function renderLibrary() {
   $("note-list").replaceChildren();
-  $("note-count").textContent = String(notes.length);
+  $("note-count").textContent = formatNumber(settings.language, notes.length);
   const found = searchNotes(notes, $("search").value);
   $("library-empty").hidden = found.length > 0;
   $("library-empty").textContent = notes.length
-    ? "没有找到匹配的笔记。换个关键词试试。"
-    : "保存的文章会在这里。\n先打开一篇文章，点击浏览器工具栏里的叶笺。";
+    ? tr("noMatches")
+    : tr("emptyLibrary");
   for (const item of found) {
     const card = makeText("div", "", "note-card");
     card.classList.toggle("active", item.id === article?.id);
     const open = makeText("button", "", "note-open");
     open.type = "button";
-    open.setAttribute("aria-label", `打开笔记：${item.title}`);
+    open.setAttribute("aria-label", tr("openNote", {title: item.title}));
     open.append(
-      makeText("strong", item.title),
+      Object.assign(makeText("strong", item.title), {dir: "auto"}),
       makeText(
         "span",
-        `${new Date(item.updatedAt).toLocaleDateString("zh-CN")} · ${item.minutes || 1} 分钟`,
+        `${formatDate(settings.language, item.updatedAt)} · ${formatMinutes(settings.language, item.minutes)}`,
       ),
     );
     open.addEventListener("click", () => {
@@ -173,10 +240,10 @@ function renderLibrary() {
     });
     const remove = makeText("button", "×", "delete-note");
     remove.type = "button";
-    remove.setAttribute("aria-label", `删除笔记：${item.title}`);
+    remove.setAttribute("aria-label", tr("deleteNote", {title: item.title}));
     remove.addEventListener("click", () => {
       if (saving) {
-        toast("正在保存，请稍候。");
+        toast(tr("saving"));
         return;
       }
       pendingDelete = item.id;
@@ -197,29 +264,17 @@ function renderArticle(value) {
     article = { ...value, content: clean, url: safeHttpURL(value.url) };
     dirty = false;
     savedVersion = value.updatedAt || "";
-    $("article-title").textContent = article.title;
-    $("article-site").textContent = article.siteName || "FROM THE WEB";
-    const meta = [
-      article.author,
-      `${article.wordCount || 0} 字 / 词`,
-      `约 ${article.minutes || 1} 分钟`,
-    ];
-    if (article.publishedTime)
-      meta.push(new Date(article.publishedTime).toLocaleDateString("zh-CN"));
-    $("article-meta").textContent = meta.filter(Boolean).join("  ·  ");
-    $("capture-type").textContent =
-      article.mode === "demo"
-        ? "示例文章"
-        : article.mode === "selection"
-          ? "选中文字"
-          : "网页正文";
-    $("source").hidden = !article.url;
-    if (article.url) $("source").href = article.url;
-    else $("source").removeAttribute("href");
-    $("article-warning").textContent = (article.warnings || []).join(" ");
-    $("article-warning").hidden = !article.warnings?.length;
+    updateArticleLabels();
     $("personal-note").value = article.note || "";
     $("article-body").innerHTML = clean;
+    article.annotations = validateAnnotations(value.annotations, $("article-body"));
+    setPenMode(false);
+    renderMarkup();
+    $("article-body").dir = "auto";
+    $("article-body").lang = /^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/.test(article.lang || "") ? article.lang : "";
+    $("article-title").dir = "auto";
+    $("article-title").lang = $("article-body").lang;
+    $("personal-note").dir = "auto";
     for (const a of $("article-body").querySelectorAll("a[href]")) {
       a.target = "_blank";
       a.rel = "noopener noreferrer";
@@ -228,11 +283,11 @@ function renderArticle(value) {
     show("reader");
     updateSaveState();
     renderLibrary();
-    document.title = `${article.title} — 叶笺 Pageleaf`;
+    document.title = `${article.title} — Pageleaf`;
     window.scrollTo(0, 0);
     void readingProgress.open(article.id, Boolean(savedVersion));
   } catch {
-    reportError("这篇笔记的内容无法读取，请重新从原网页整理。");
+    reportError("noteError");
   }
 }
 function buildToc() {
@@ -262,7 +317,7 @@ function buildToc() {
   }
   if (!headings.length)
     $("toc-links").append(
-      makeText("span", "这篇文章没有小标题。", "empty-hint"),
+      makeText("span", tr("noHeadings"), "empty-hint"),
     );
   intersection = new IntersectionObserver(
     (entries) => {
@@ -285,6 +340,8 @@ async function saveNote() {
   saving = true;
   $("save").disabled = true;
   $("personal-note").disabled = true;
+  setPenMode(false);
+  for (const button of document.querySelectorAll(".annotation-toolbar button")) button.disabled = true;
   try {
     const result = await navigator.locks.request(
       "pageleaf-notes-write",
@@ -303,7 +360,7 @@ async function saveNote() {
             100
         )
           throw new Error(
-            "本机最多保存 100 篇笔记。请先导出并删除不再需要的笔记。",
+            "limitNotes",
           );
         const next = {
           ...requestedArticle,
@@ -313,7 +370,7 @@ async function saveNote() {
         };
         if (new TextEncoder().encode(JSON.stringify(next)).length > 1_000_000)
           throw new Error(
-            "这篇文章太大，无法保存。请改为采集部分段落，或直接导出 Markdown。",
+            "largeNote",
           );
         await storage.local.set({ [`note:${id}`]: next });
         return { next, copied };
@@ -330,21 +387,21 @@ async function saveNote() {
     await loadLibrary();
     toast(
       result.copied
-        ? "另一个窗口修改了原笔记，已将你的内容另存为新笔记。"
+        ? tr("conflictSaved")
         : isPreview
-          ? "已保留在当前预览页面；刷新会清空，请导出备份。"
-          : "已保存到当前浏览器的本机笔记库。",
+          ? tr("previewSaved")
+          : tr("saved"),
     );
   } catch (error) {
     toast(
-      error.message?.includes("100") || error.message?.includes("太大")
-        ? error.message
-        : "本机存储空间不足或不可用。请先导出 Markdown 备份。",
+      ["limitNotes", "largeNote"].includes(error.message) ? tr(error.message) : tr("storageError"),
     );
   } finally {
     saving = false;
     $("save").disabled = false;
     $("personal-note").disabled = false;
+    for (const button of document.querySelectorAll(".annotation-toolbar button")) button.disabled = false;
+    updateMarkupButtons();
   }
 }
 async function deleteNote() {
@@ -363,13 +420,13 @@ async function deleteNote() {
       dirty = false;
       savedVersion = "";
       show("welcome");
-      document.title = "叶笺 Pageleaf — 让阅读留下来";
-      history.replaceState(null, "", "reader.html");
+      document.title = tr("title");
+      history.replaceState(null, "", `reader.html?lang=${settings.language}`);
     }
     await loadLibrary();
-    toast("笔记已从本机删除。");
+    toast(tr("deleted"));
   } catch {
-    toast("删除失败，请稍后重试。");
+    toast(tr("deleteError"));
   } finally {
     $("confirm-delete").disabled = false;
   }
@@ -378,11 +435,11 @@ async function copyMarkdown() {
   if (!article) return;
   try {
     await navigator.clipboard.writeText(
-      buildMarkdown(article, $("personal-note").value),
+      buildMarkdown(article, $("personal-note").value, { locale: settings.language }),
     );
-    toast("已复制 Markdown，包含来源和你的笔记。");
+    toast(tr("copied"));
   } catch {
-    toast("无法访问剪贴板，请使用“导出 .md”保存。");
+    toast(tr("clipboardError"));
   }
 }
 function downloadText(text, type, filename) {
@@ -397,13 +454,13 @@ function exportMarkdown() {
   if (!article) return;
   try {
     downloadText(
-      buildMarkdown(article, $("personal-note").value),
+      buildMarkdown(article, $("personal-note").value, { locale: settings.language }),
       "text/markdown;charset=utf-8",
       noteFilename(article.title),
     );
-    toast("已发起 Markdown 下载，请在浏览器下载列表中查看。");
+    toast(tr("exported"));
   } catch {
-    toast("导出失败，请尝试复制 Markdown。");
+    toast(tr("exportError"));
   }
 }
 function recordsFromStorage(data) {
@@ -422,7 +479,7 @@ async function backupLibrary() {
       async () => recordsFromStorage(await storage.local.get(null)),
     );
     if (!records.length) {
-      toast("笔记库为空，请先保存一篇笔记。");
+      toast(tr("backupEmpty"));
       return;
     }
     const json = createBackup(records);
@@ -431,9 +488,9 @@ async function backupLibrary() {
       "application/json;charset=utf-8",
       `pageleaf-backup-${new Date().toISOString().slice(0, 10)}.json`,
     );
-    toast(`已发起 ${records.length} 篇笔记的备份下载。`);
+    toast(tr("backedUp", {count: formatNumber(settings.language, records.length)}));
   } catch (error) {
-    toast(error.message || "备份失败，请重试。");
+    toast(localizeMessage(settings.language, error.message, "backupError"));
   } finally {
     $("backup-library").disabled = false;
   }
@@ -444,19 +501,19 @@ async function previewImport(event) {
   $("import-library").disabled = true;
   try {
     if (file.size > MAX_BACKUP_BYTES)
-      throw new Error("备份文件超过 20 MB 上限。");
+      throw new Error("backupLarge");
     const parsed = parseBackup(await file.text(), document);
     const plan = planImport(
       recordsFromStorage(await storage.local.get(null)),
       parsed.notes,
     );
     pendingImport = parsed.notes;
-    $("import-summary").textContent =
-      `将恢复 ${plan.notesToAdd.length} 篇笔记，跳过 ${plan.skipped} 篇重复笔记。${parsed.warnings.length ? "已清理不安全的网页内容和链接。" : ""}`;
+    importSummary = { add: plan.notesToAdd.length, skip: plan.skipped, sanitized: parsed.warnings.length > 0 };
+    updateImportSummary();
     $("import-dialog").showModal();
   } catch (error) {
     pendingImport = null;
-    toast(error.message || "备份无法读取，请选择叶笺导出的 JSON 文件。");
+    toast(localizeMessage(settings.language, error.message, "backupInvalid"));
   } finally {
     $("import-file").value = "";
     $("import-library").disabled = false;
@@ -485,19 +542,197 @@ async function confirmImport() {
     $("import-dialog").close();
     await loadLibrary();
     toast(
-      `已恢复 ${plan.notesToAdd.length} 篇笔记，跳过 ${plan.skipped} 篇重复笔记。`,
+      tr("imported", {add: formatNumber(settings.language, plan.notesToAdd.length), skip: formatNumber(settings.language, plan.skipped)}),
     );
   } catch (error) {
     toast(
-      error.message?.includes("100")
-        ? error.message
-        : "恢复失败，可能是本机空间不足。已有笔记不会被覆盖。",
+      error.message?.includes("100") ? tr("limitNotes") : tr("importError"),
     );
   } finally {
     $("confirm-import").disabled = false;
   }
 }
+function updateMarkupButtons() {
+  const count = article?.annotations?.length || 0;
+  $("undo-mark").disabled = saving || !count;
+  $("clear-marks").disabled = saving || !count;
+}
+function setPenMode(enabled) {
+  penActive = Boolean(enabled && article && !saving);
+  activeStroke = null;
+  $("pen").setAttribute("aria-pressed", String(penActive));
+  $("article-surface").classList.toggle("drawing", penActive);
+  $("annotation-hint").textContent = tr(penActive ? "penHint" : "selectionHint");
+}
+function drawStrokes(extra = null) {
+  const layer = $("pen-layer");
+  layer.replaceChildren();
+  for (const stroke of [...(article?.annotations || []), ...(extra ? [extra] : [])]) {
+    if (stroke.type !== "pen") continue;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", stroke.points.map(([x, y], index) => `${index ? "L" : "M"}${(x * 1000).toFixed(2)},${(y * 1000).toFixed(2)}`).join(" "));
+    path.setAttribute("vector-effect", "non-scaling-stroke");
+    layer.appendChild(path);
+  }
+}
+function renderMarkup() {
+  if (!article) return;
+  renderAnnotations($("article-body"), article.annotations || [], document);
+  drawStrokes();
+  updateMarkupButtons();
+}
+function changedMarkup() {
+  dirty = true;
+  renderMarkup();
+  updateSaveState();
+}
+function addTextMark(style) {
+  if (!article || saving) return;
+  setPenMode(false);
+  const mark = getSelectionAnnotation($("article-body"), window.getSelection(), style);
+  if (!mark) return toast(tr("selectionHint"));
+  const marks = article.annotations || [];
+  if (marks.filter(item => item.type === "text").length >= ANNOTATION_LIMITS.text)
+    return toast(tr("annotationLimit"));
+  if (marks.some(item => item.type === "text" && item.start === mark.start && item.end === mark.end && item.style === mark.style)) return;
+  article.annotations = [...marks, mark];
+  window.getSelection()?.removeAllRanges();
+  changedMarkup();
+  toast(tr("markAdded"));
+}
+function penPoint(event) {
+  const rect = $("pen-layer").getBoundingClientRect();
+  if (!rect.width || !rect.height) return null;
+  return [Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height))];
+}
+function startPen(event) {
+  if (!penActive || !article || saving || (event.button !== undefined && event.button !== 0)) return;
+  if ((article.annotations || []).filter(item => item.type === "pen").length >= ANNOTATION_LIMITS.pen)
+    return toast(tr("annotationLimit"));
+  const point = penPoint(event);
+  if (!point) return;
+  event.preventDefault();
+  activeStroke = { type: "pen", points: [point] };
+  $("pen-layer").setPointerCapture?.(event.pointerId);
+}
+function movePen(event) {
+  if (!activeStroke || saving) return;
+  const point = penPoint(event);
+  if (!point || activeStroke.points.length >= ANNOTATION_LIMITS.points) return;
+  const last = activeStroke.points.at(-1);
+  if (Math.hypot(point[0] - last[0], point[1] - last[1]) < 0.0005) return;
+  activeStroke.points.push(point);
+  drawStrokes(activeStroke);
+}
+function finishPen(event) {
+  if (!activeStroke) return;
+  movePen(event);
+  const stroke = activeStroke;
+  activeStroke = null;
+  if (stroke.points.length < 2) return drawStrokes();
+  article.annotations = validateAnnotations([...(article.annotations || []), stroke], $("article-body"));
+  changedMarkup();
+}
+function previewOrganization() {
+  if (!article || saving) return;
+  setPenMode(false);
+  organizedDraft = organizeArticle({content: article.content, annotations: article.annotations || [], document, locale: settings.language});
+  if (!organizedDraft.items.length) return toast(tr("marksEmpty"));
+  const list = document.createElement("ol");
+  for (const item of organizedDraft.items) {
+    const entry = document.createElement("li");
+    if (item.heading) {
+      const heading = document.createElement("strong");
+      heading.textContent = item.heading;
+      entry.append(heading);
+    }
+    const text = document.createElement("p");
+    text.textContent = item.text;
+    entry.append(text);
+    list.append(entry);
+  }
+  $("organize-preview").replaceChildren(list);
+  $("organize-hint").textContent = tr(organizedDraft.source === "marks" ? "organizeMarksHint" : "organizeSectionsHint");
+  $("organize-dialog").showModal();
+}
+function appendOrganization() {
+  if (!organizedDraft || saving) return;
+  const editor = $("personal-note");
+  const excerpts = [tr("organizeTitle"), ...organizedDraft.items.map(item => `• ${item.heading ? `${item.heading}: ` : ""}${item.text}`)].join("\n");
+  const next = [editor.value, excerpts].filter(Boolean).join("\n\n");
+  if (next.length > editor.maxLength) return toast(tr("largeNote"));
+  editor.value = next;
+  dirty = true;
+  updateSaveState();
+  $("organize-dialog").close();
+  editor.focus();
+}
+function markOrganization() {
+  if (!organizedDraft || !article || saving) return;
+  const raw = $("article-body").textContent;
+  let normalized = "";
+  const offsets = [];
+  for (let index = 0; index < raw.length; index++) {
+    const character = /\s/u.test(raw[index]) ? " " : raw[index];
+    if (character === " " && normalized.endsWith(" ")) continue;
+    normalized += character;
+    offsets.push(index);
+  }
+  const marks = [...(article.annotations || [])];
+  for (const item of organizedDraft.items) {
+    if (marks.filter(mark => mark.type === "text").length >= ANNOTATION_LIMITS.text) break;
+    const needle = item.text.replace(/…$/, "").replace(/\s+/gu, " ").trim();
+    const headingIndex = item.heading ? normalized.indexOf(item.heading.replace(/\s+/gu, " ").trim()) : -1;
+    const index = normalized.indexOf(needle, Math.max(0, headingIndex));
+    if (!needle || index < 0) continue;
+    const start = offsets[index];
+    const end = offsets[index + needle.length - 1] + 1;
+    if (marks.some(mark => mark.type === "text" && mark.start === start && mark.end === end && mark.style === "highlight")) continue;
+    marks.push({type: "text", style: "highlight", start, end, exact: raw.slice(start, end)});
+  }
+  article.annotations = validateAnnotations(marks, $("article-body"));
+  changedMarkup();
+  $("organize-dialog").close();
+  toast(tr("markAdded"));
+}
+for (const button of document.querySelectorAll("[data-mark]")) {
+  button.addEventListener("pointerdown", event => event.preventDefault());
+  button.addEventListener("click", () => addTextMark(button.dataset.mark));
+}
+$("pen").addEventListener("click", () => { setPenMode(!penActive); if (penActive) toast(tr("penHint")); });
+$("undo-mark").addEventListener("click", () => {
+  if (!article || saving || !article.annotations?.length) return;
+  article.annotations = article.annotations.slice(0, -1);
+  changedMarkup();
+  toast(tr("undoDone"));
+});
+$("clear-marks").addEventListener("click", () => {
+  if (!article || saving || !article.annotations?.length || !window.confirm(tr("clearMarksConfirm"))) return;
+  article.annotations = [];
+  changedMarkup();
+  toast(tr("marksCleared"));
+});
+$("jump-note").addEventListener("click", () => { $("personal-note").scrollIntoView({block: "center"}); $("personal-note").focus({preventScroll: true}); });
+$("organize").addEventListener("click", previewOrganization);
+$("append-organize").addEventListener("click", appendOrganization);
+$("mark-organized").addEventListener("click", markOrganization);
+$("cancel-organize").addEventListener("click", () => $("organize-dialog").close());
+$("organize-dialog").addEventListener("close", () => { organizedDraft = null; });
+$("pen-layer").addEventListener("pointerdown", startPen);
+$("pen-layer").addEventListener("pointermove", movePen);
+$("pen-layer").addEventListener("pointerup", finishPen);
+$("pen-layer").addEventListener("pointercancel", () => { activeStroke = null; drawStrokes(); });
+window.addEventListener("keydown", event => { if (event.key === "Escape" && penActive) setPenMode(false); });
+if (typeof ResizeObserver === "function") {
+  const toolbarObserver = new ResizeObserver(entries => {
+    for (const entry of entries) document.documentElement.style.setProperty(entry.target.classList.contains("annotation-toolbar") ? "--annotation-toolbar-height" : "--reader-toolbar-height", `${entry.target.getBoundingClientRect().height}px`);
+  });
+  toolbarObserver.observe(document.querySelector(".reader-toolbar"));
+  toolbarObserver.observe(document.querySelector(".annotation-toolbar"));
+}
+
 function preparePrint() {
+  setPenMode(false);
   $("print-note").textContent = $("personal-note").value.trim();
   $("print-note").classList.toggle("empty", !$("print-note").textContent);
 }
@@ -506,29 +741,18 @@ function printArticle() {
   preparePrint();
   window.print();
 }
-function demoArticle() {
-  return {
-    id: crypto.randomUUID(),
-    title: "把阅读变成自己的东西",
-    url: "",
-    siteName: "PAGELEAF JOURNAL · 示例文章",
-    author: "叶笺",
-    lang: "zh-CN",
-    wordCount: 735,
-    minutes: 3,
-    capturedAt: new Date().toISOString(),
-    mode: "demo",
-    warnings: ["这是内置示例，可自由试读、写笔记和导出。"],
-    content:
-      "<p>收藏一篇文章只需要一秒，真正理解它，却需要留一点时间。我们总能找到值得读的文字，但未必能记住当时为什么被它打动。</p><p>好的笔记不是文章的替身。它更像一枚书签，替你保存阅读发生的那个瞬间：一个疑问，一句不同意的话，或者一个准备付诸行动的想法。</p><h2>01 · 先留住一个问题</h2><p>下次读到让你停顿的段落，不必急着摘抄全文。试着先问自己：这段话回答了什么？它还留下了什么？</p><blockquote><p>阅读的价值，不只在于你读了多少，也在于哪些东西让你的思考向前走了一步。</p></blockquote><p>用自己的语言记下一两句话。它们也许不够完整，却是理解真正开始的地方。</p><h2>02 · 让笔记可以带走</h2><p>把文字保存在一种简单、通用的格式里，就能在不同工具之间自由整理。Markdown 保留标题、列表和代码，也让内容保持可读。</p><h3>一个小小的阅读习惯</h3><ul><li>保存来源，给作者应有的署名。</li><li>写下一句自己的理解。</li><li>列出一个可以继续探索的问题。</li></ul><table><thead><tr><th>读到什么</th><th>留些什么</th></tr></thead><tbody><tr><td>一个好观点</td><td>我为什么认同它</td></tr><tr><td>一段教程</td><td>我打算如何尝试</td></tr><tr><td>一个疑问</td><td>下一步去哪里寻找答案</td></tr></tbody></table><h2>03 · 给思考留一点空白</h2><p>不需要把每篇文章都变成一份作业。有时，只保留一段与你有关的文字，已经足够。</p><p>在上方的“我的笔记”里写下一句话，然后保存或导出。这一页，就有了属于你的部分。</p>",
-    markdown:
-      "收藏一篇文章只需要一秒，真正理解它，却需要留一点时间。我们总能找到值得读的文字，但未必能记住当时为什么被它打动。\n\n好的笔记不是文章的替身。它更像一枚书签，替你保存阅读发生的那个瞬间：一个疑问，一句不同意的话，或者一个准备付诸行动的想法。\n\n## 01 · 先留住一个问题\n\n下次读到让你停顿的段落，不必急着摘抄全文。试着先问自己：这段话回答了什么？它还留下了什么？\n\n> 阅读的价值，不只在于你读了多少，也在于哪些东西让你的思考向前走了一步。\n\n用自己的语言记下一两句话。它们也许不够完整，却是理解真正开始的地方。\n\n## 02 · 让笔记可以带走\n\n把文字保存在一种简单、通用的格式里，就能在不同工具之间自由整理。Markdown 保留标题、列表和代码，也让内容保持可读。\n\n### 一个小小的阅读习惯\n\n- 保存来源，给作者应有的署名。\n- 写下一句自己的理解。\n- 列出一个可以继续探索的问题。\n\n| 读到什么 | 留些什么 |\n| --- | --- |\n| 一个好观点 | 我为什么认同它 |\n| 一段教程 | 我打算如何尝试 |\n| 一个疑问 | 下一步去哪里寻找答案 |\n\n## 03 · 给思考留一点空白\n\n不需要把每篇文章都变成一份作业。有时，只保留一段与你有关的文字，已经足够。\n\n在上方的“我的笔记”里写下一句话，然后保存或导出。这一页，就有了属于你的部分。",
-  };
+function demoArticle() { return makeDemoArticle(settings.language); }
+function openDemo() {
+  if (!canLeave()) return;
+  const url = new URL(location.href);
+  url.hash = "";
+  url.searchParams.set("demo", "");
+  url.searchParams.set("lang", settings.language);
+  history.replaceState(null, "", `${url.pathname}${url.search}`);
+  renderArticle(demoArticle());
 }
-$("demo").addEventListener("click", () => {
-  if (canLeave()) renderArticle(demoArticle());
-});
-$("error-demo").addEventListener("click", () => renderArticle(demoArticle()));
+$("demo").addEventListener("click", openDemo);
+$("error-demo").addEventListener("click", openDemo);
 $("personal-note").addEventListener("input", () => {
   dirty = true;
   updateSaveState();
@@ -547,7 +771,15 @@ $("import-dialog").addEventListener("close", () => {
 });
 $("print").addEventListener("click", printArticle);
 window.addEventListener("beforeprint", preparePrint);
-$("help").addEventListener("click", () => $("help-dialog").showModal());
+$("help")?.addEventListener("click", () => $("help-dialog").showModal());
+$("language")?.addEventListener("change", async (event) => {
+  settings.language = resolveLanguage(event.target.value);
+  const url = new URL(location.href);
+  url.searchParams.set("lang", settings.language);
+  history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  applyLanguage();
+  await saveSettings();
+});
 $("theme").addEventListener("click", async () => {
   settings.dark = !settings.dark;
   await saveSettings();
@@ -562,9 +794,11 @@ $("font-up").addEventListener("click", async () => {
 });
 $("cancel-delete").addEventListener("click", () => $("delete-dialog").close());
 $("confirm-delete").addEventListener("click", deleteNote);
-document.querySelector(".brand").addEventListener("click", (event) => {
-  if (!canLeave()) event.preventDefault();
-});
+for (const link of document.querySelectorAll("[data-reader-exit], .brand, .reader-nav a")) {
+  link.addEventListener("click", (event) => {
+    if (!canLeave()) event.preventDefault();
+  });
+}
 window.addEventListener("beforeunload", (event) => {
   if (dirty) {
     event.preventDefault();
@@ -579,22 +813,32 @@ globalThis.chrome?.storage?.onChanged?.addListener?.(async (changes, area) => {
     try {
       await loadLibrary();
     } catch {
-      toast("笔记库刷新失败。");
+      toast(tr("libraryError"));
     }
   }
 });
 
 async function init() {
+  settings.language = resolveLanguage(new URLSearchParams(location.search).get("lang") || navigator.languages || navigator.language);
+  applyLanguage();
   try {
     $("preview-notice").hidden = !isPreview;
-    if (isPreview) $("privacy-status").lastChild.textContent = "网页预览";
     const saved = (await storage.local.get("settings")).settings;
     if (saved)
       settings = {
         dark: saved.dark === true,
         fontSize: Math.min(26, Math.max(15, Number(saved.fontSize) || 18)),
+        language: resolveLanguage(saved.language || navigator.languages || navigator.language),
       };
-    updateSettings();
+    let previewLanguage = "";
+    try {
+      if (isPreview) {
+        previewLanguage = window.localStorage.getItem("pageleaf-language") || "";
+        settings.dark = window.localStorage.getItem("pageleaf-dark") === "true";
+      }
+    } catch { /* Browser privacy settings may disable preview preferences. */ }
+    settings.language = resolveLanguage(new URLSearchParams(location.search).get("lang") || (isPreview ? previewLanguage : saved?.language) || navigator.languages || navigator.language);
+    applyLanguage();
     await loadLibrary();
     const params = new URLSearchParams(location.hash.slice(1));
     if (params.has("error")) {
@@ -610,19 +854,19 @@ async function init() {
       if (value) renderArticle(value);
       else
         reportError(
-          "这份临时文章已经过期。请回到原网页，重新点击叶笺整理；保存到本机的笔记可以从左侧打开。",
+          "expired",
         );
     } else if (noteId) {
       const value = (await storage.local.get(`note:${noteId}`))[
         `note:${noteId}`
       ];
       if (value) renderArticle(value);
-      else reportError("这篇笔记已被删除，或不在当前浏览器的本机笔记库中。");
+      else reportError("missing");
     } else if (new URLSearchParams(location.search).has("demo"))
       renderArticle(demoArticle());
   } catch {
     reportError(
-      "暂时无法读取本机笔记库，请重新打开叶笺，或检查浏览器的扩展存储设置。",
+      "initError",
     );
   }
 }

@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Pageleaf · 叶笺"
+  },
+  "extensionDescription": {
+    "message": "将网页正文或选中文字保存为本机笔记，支持阅读、全文搜索、备份和 Markdown 导出。"
+  },
+  "actionTitle": {
+    "message": "用叶笺保存当前网页"
+  },
+  "commandDescription": {
+    "message": "将当前网页保存为笔记"
+  }
+}

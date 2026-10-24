@@ -5,7 +5,7 @@ async function capture(tab) {
   if (!Number.isInteger(tab.id)) return;
   try {
     await chrome.action.setBadgeBackgroundColor({
-      color: "#285947",
+      color: "#111111",
       tabId: tab.id,
     });
     await chrome.action.setBadgeText({ text: "…", tabId: tab.id });
@@ -99,7 +99,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   if (reason === "install") {
     try {
-      await chrome.tabs.create({ url: chrome.runtime.getURL("reader.html") });
+      await chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
     } catch {
       /* The action remains available if the welcome page cannot open. */
     }

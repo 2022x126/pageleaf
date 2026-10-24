@@ -1,17 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "Pageleaf · 叶笺",
+  "name": "__MSG_extensionName__",
   "short_name": "Pageleaf",
-  "description": "将当前网页或选中文本整理成可阅读、可批注、可导出的 Markdown 笔记。内容只在本机处理。",
-  "version": "0.2.0",
+  "description": "__MSG_extensionDescription__",
+  "version": "0.3.0",
   "minimum_chrome_version": "116",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
   "action": {
-    "default_title": "用叶笺整理当前网页",
+    "default_title": "__MSG_actionTitle__",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
@@ -31,10 +35,16 @@
         "default": "Alt+Shift+L",
         "mac": "Alt+Shift+L"
       },
-      "description": "将当前网页整理为笔记"
+      "description": "__MSG_commandDescription__"
     }
   },
   "content_security_policy": {
     "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
-  }
+  },
+  "default_locale": "en",
+  "options_ui": {
+    "page": "index.html",
+    "open_in_tab": true
+  },
+  "homepage_url": "https://2022x126.github.io/pageleaf/"
 }

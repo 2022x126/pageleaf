@@ -1,29 +1,48 @@
-# Pageleaf 维护指南
+# Pageleaf maintenance
 
-定期维护在当前 Codex 聊天中执行；实际时间以 Codex 中已启用的维护任务为准。每次先查看当前代码、Git 状态和已发布版本，避免覆盖用户尚未提交的工作。
+Maintenance runs in the current Codex chat; the active automation in Codex is the source of truth for its schedule. Start by reading this chat's latest user feedback, the Git state, current code, releases and Issues. Preserve uncommitted user work and avoid repeating completed fixes.
 
-## 每次维护
+## Priorities
 
-1. 检查项目 Issues、最近提交和版本反馈，优先处理内容丢失、提取错误、无法操作与阅读障碍。只记录有证据的问题，不制造用户数、下载数或维护历史。
-2. 查看运行依赖和构建依赖的兼容性与已公开安全公告。仅在存在明确修复或兼容收益时更新，阅读变更说明并保留锁文件；不要为追新进行无必要的大版本迁移。
-3. 对授权范围内的修复运行 `npm run check`。变更提取、存储、转义或并发逻辑时，使用能够复现原问题的针对性用例。
-4. 在浏览器检查欢迎页、阅读页、笔记库、错误态与空搜索；分别查看浅色、深色、桌面和窄屏。检查标题、正文、目录与工具栏的层次、对比、横向溢出、键盘焦点和减少动态效果设置。
-5. 将自动化逻辑验证、网页预览和已安装扩展实测分开记录。未完成的真实工具栏采集、浏览器重启后持久化或下载验证，不能以构建成功代替。
-6. 更新验收记录、受影响的截图以及 `CHROMEWEBSTORE.md` 中的功能、版本和权限说明，再构建安装包与源码包。验证归档内容和实际发布结果。
+1. Address evidenced content loss, text/pen annotation persistence, excerpt collection, extraction/export failures, backup restoration, full-text search, reading positions, compatibility and accessibility problems before adding features. Do not manufacture usage figures, Stars, testimonials or maintenance history.
+2. Review dependency compatibility and published security advisories where relevant. Update when a change fixes an actual issue; read release notes and retain the lockfile. Avoid unnecessary migrations.
+3. Apply the `chrome-extensions` skill when changing the extension. Run `npm run check`; changes to extraction, storage, escaping or concurrency need a targeted regression case that reproduces the issue.
+4. Check Home, searchable Help, Privacy, About, the reader, library, errors, empty search and confirmations in a real visible browser. Inspect white/black, desktop/narrow layouts, keyboard focus, text contrast and horizontal overflow. Respect browser security restrictions; do not bypass a blocked action through another tool.
+5. Exercise automatic/manual language selection, English fallback and all seven locales (`en`, `zh-CN`, `es`, `fr`, `de`, `ja`, `ar`). Check long German/French labels, Chinese/Japanese text and Arabic RTL, mixed-direction source URLs, keyboard order, numbers and dates. Switching UI language must preserve original article text, personal notes and unsaved edits. Treat translation review as ongoing; do not claim native-language verification without evidence.
+6. Record automated checks, website previews and installed-extension acceptance separately in `docs/VALIDATION.md`. Build success cannot substitute for actual toolbar capture, new-install routing, browser-restart persistence, downloaded files or print acceptance.
+7. Update affected docs, Privacy copy, `CHROMEWEBSTORE.md`, version metadata and screenshots. Rebuild installation and source ZIPs, inspect archive contents and verify actual release results before claiming publication.
 
-## 界面约定
+## Product and design boundaries
 
-- 遵循用户最新偏好：纯白与纯黑两种模式，界面简洁，仅保留帮助阅读、记笔记、检索、保存与导出的实用功能。
-- 不增加森林、山景、枝叶、纸张插画、纹理、光斑等装饰；用清晰的排版、留白、对齐和足够对比度组织信息。
-- 新视觉素材随扩展本地打包，不加入远程字体、追踪图片、外部脚本或必要性不明的依赖。
-- 尊重系统减少动态效果偏好，提供可见焦点，并保证深浅模式都可读。
+- Honor the latest user preference: plain white or plain black, with clear typography, spacing, alignment and contrast. New features must solve a concrete reading, note, discovery, support or data-control problem.
+- Do not add illustrations, forests, mountains, decorative leaves, paper textures, gradients, light effects, ornamental panels or remote fonts. The small Leaf-P brand mark is an identity asset, not a decorative background; follow `docs/BRAND.md`.
+- Keep **Pageleaf** as the international brand, with the Chinese name 叶笺 in Chinese contexts. Do not assume all users are in China, use Chinese, share a locale, or understand developer terminology.
+- Preserve the product structure: Home explains and starts the product; Help answers real tasks and failures; Privacy describes current data handling; About gives honest project status and contribution/license information. Keep navigation available from the reader.
+- Localize accessible names, placeholders, errors, confirmations and dynamic statuses alongside visible labels. Use locale-aware dates/numbers and logical CSS layout properties. Articles and user-authored notes must never be translated implicitly.
+- Bundle essential assets and guides with the extension. Maintain visible focus and readable dark/light appearances; respect reduced-motion preferences.
 
-## 数据与权限边界
+## Data and permission boundaries
 
-核心功能保持本机处理：按用户动作读取页面，未保存摘录使用会话存储，明确保存后才进入本机笔记库。不得把用户摘录、笔记、浏览记录、个人邮箱或凭据加入公开代码、截图、日志或测试夹具。
+Processing remains local and user-initiated. Unsaved captures use session storage; only explicitly saved notes enter the persistent library. Never put private captures, notes, backups, browsing records, personal emails or credentials into public source, screenshots, routine logs or test fixtures.
 
-每次新增权限、远程处理、云同步或改变数据保留方式，都必须先说明实际需要并取得相应授权，同时更新隐私说明与商店资料。未知发布者信息保持待补，不编造联系方式。
+Language, white/black appearance and reader font size are local extension preferences. A normal website preview may retain only language and white/black appearance in site `localStorage`; preview content stays in page memory and disappears on refresh. Backup files exclude progress and language/display preferences.
 
-## 输出
+Any new permission, remote processing, cloud sync or changed retention requires a stated need and the corresponding authorization, plus updates to the privacy and store materials. Unknown publisher or contact information stays blank. Do not claim legal/privacy certification, independent auditing or compatibility with every site/language.
 
-只在发现并修复了实际问题、发布了经过验证的改进、发生失败或需要用户处理时通知用户；状态没有变化时保持安静。说明具体改变、完成的检查，以及仍未验证的部分。维护任务不代表 OpenAI 活动已经获批，也不应重复提交活动申请。
+## Standalone product site
+
+Use `npm run build:site` for the separate static product site in `site-dist`; do not deploy the extension's `dist` directory as a website. Review `docs/WEBSITE.md` before deploying. Keep Home, Help, Privacy, About and the reader demo in sync with the extension and current release links.
+
+A hosted site's normal page/resource requests to its hosting provider are separate from the installed extension's local pages. Keep that distinction in public privacy copy; “no telemetry” does not mean a hosted website makes no network requests. Do not claim a live URL, successful deployment, HTTPS, store publication or a working download until it has been checked. Do not deploy private sample data or accidentally ship background/manifest files in the product-site output.
+
+## Reporting
+
+Notify the user only for a meaningful verified improvement/release, a material failure or required action. Keep unchanged or non-actionable checks quiet. State what changed, what was checked and any practical limit that remains. Maintenance does not mean the OpenAI application was approved, and must not resubmit that application.
+
+## 中文维护要点
+
+始终面向不同语言和地区的用户，保留纯白／纯黑与实用功能优先的方向。主页、帮助、隐私、关于、扩展和独立静态站需要同步更新；七种界面语言及阿拉伯语 RTL 都应检查，原文和用户笔记不得因切换界面而改变。浏览器预览、自动化测试、已安装扩展验收与线上站点验收分别记录，未验证的结果不写成已完成。权限和本机处理边界不扩大；没有有意义变化时保持安静。
+
+## Copy and example acceptance
+
+The user explicitly rejected abstract or translated-sounding copy. Use short, ordinary sentences that say what the button does. In Chinese prefer familiar actions such as 保存网页、划重点、下划线、波浪线、画笔 and 整理重点; avoid motivational slogans or unexplained terminology. Review other languages for the same clarity and welcome native-language corrections. Never claim a human wrote generated text or that all translations have native-speaker approval. Keep the demo concrete and interactive. Excerpt collection must remain clearly described as marked quotations or section-opening sentences, with preview and append, never as an AI judgment of importance.

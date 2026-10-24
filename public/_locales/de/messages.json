@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Pageleaf"
+  },
+  "extensionDescription": {
+    "message": "Artikel und markierten Text lokal als Notizen speichern. Lesen, suchen, sichern und als Markdown exportieren."
+  },
+  "actionTitle": {
+    "message": "Diese Seite mit Pageleaf speichern"
+  },
+  "commandDescription": {
+    "message": "Aktuelle Seite als Notiz speichern"
+  }
+}

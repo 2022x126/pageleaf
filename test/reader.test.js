@@ -7,6 +7,10 @@ import { JSDOM } from "jsdom";
 import { sanitizeArticle, safeHttpURL } from "../src/content.js";
 import { buildMarkdown, noteFilename, searchNotes } from "../src/notes.js";
 import { createReadingProgress } from "../src/progress.js";
+import * as i18n from "../src/i18n.js";
+import * as markup from "../src/markup.js";
+import { demoArticle as makeDemoArticle } from "../src/demo.js";
+import { organizeArticle } from "../src/organize.js";
 import { createBackup, parseBackup, planImport, MAX_BACKUP_BYTES } from "../src/backup.js";
 
 const root = new URL("../", import.meta.url);
@@ -112,6 +116,7 @@ async function reader({
   local,
   locks = lockManager(),
   hash = "#note=first",
+  languages = ["en"],
 } = {}) {
   local ||= memoryStorage({
     "note:first": note("first"),
@@ -166,7 +171,7 @@ async function reader({
       observe() {}
       disconnect() {}
     },
-    navigator: { locks, clipboard: { async writeText() {} } },
+    navigator: { languages, locks, clipboard: { async writeText() {} } },
     chrome: {
       storage: {
         local,
@@ -184,6 +189,10 @@ async function reader({
     parseBackup,
     planImport,
     MAX_BACKUP_BYTES,
+    ...i18n,
+    ...markup,
+    makeDemoArticle,
+    organizeArticle,
   });
   // An async function allows the real top-level await without SourceTextModule or flags.
   const script = new vm.Script(
@@ -221,6 +230,47 @@ async function until(predicate, description) {
   assert.fail(`Timed out waiting for ${description}`);
 }
 
+
+function selectArticleText(app, exact) {
+  const body = app.element("article-body");
+  const start = body.textContent.indexOf(exact);
+  assert.ok(start >= 0, `Test selection must exist in article: ${exact}`);
+  const end = start + exact.length;
+  const walker = app.window.document.createTreeWalker(body, 4);
+  let offset = 0, startPoint = null, endPoint = null, node;
+  while ((node = walker.nextNode())) {
+    const next = offset + node.data.length;
+    if (!startPoint && start >= offset && start < next) startPoint = [node, start - offset];
+    if (!endPoint && end > offset && end <= next) endPoint = [node, end - offset];
+    offset = next;
+  }
+  assert.ok(startPoint && endPoint);
+  const range = app.window.document.createRange();
+  range.setStart(...startPoint);
+  range.setEnd(...endPoint);
+  const selection = app.window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+  assert.equal(selection.toString(), exact);
+  return {start, end, exact};
+}
+function clickTextMark(app, exact, style = "highlight") {
+  const anchor = selectArticleText(app, exact);
+  const button = app.window.document.querySelector(`[data-mark="${style}"]`);
+  assert.ok(button);
+  const down = new app.window.MouseEvent("pointerdown", {bubbles: true, cancelable: true});
+  button.dispatchEvent(down);
+  assert.equal(down.defaultPrevented, true, "mark toolbar must preserve the browser text selection");
+  button.click();
+  return {type: "text", style, ...anchor};
+}
+function pointer(app, type, clientX, clientY) {
+  const event = new app.window.MouseEvent(type, {bubbles: true, cancelable: true, button: 0, clientX, clientY});
+  Object.defineProperty(event, "pointerId", {value: 1});
+  app.element("pen-layer").dispatchEvent(event);
+  return event;
+}
+
 function selectBackup(app, backup) {
   const input = app.element("import-file");
   Object.defineProperty(input, "files", {
@@ -249,11 +299,11 @@ test("saving disables editing and prevents switching to a different library note
   assert.equal(app.element("save").disabled, true);
   assert.equal(app.element("personal-note").disabled, true);
   app.window.document
-    .querySelector('[aria-label="打开笔记：文章 second"]')
+    .querySelector('[aria-label="Open note: 文章 second"]')
     .click();
   assert.equal(app.element("article-title").textContent, "文章 first");
   assert.equal(app.window.location.hash, "#note=first");
-  assert.match(app.element("toast").textContent, /正在保存/);
+  assert.match(app.element("toast").textContent, /Saving/);
   release.resolve();
   await saving;
   assert.equal(
@@ -262,13 +312,14 @@ test("saving disables editing and prevents switching to a different library note
   );
   assert.equal(app.local.values["note:second"].note, "");
   assert.equal(app.element("personal-note").disabled, false);
-  assert.match(app.element("save-state").textContent, /已保存/);
+  assert.match(app.element("save-state").textContent, /Saved/);
 });
 
 test("save writes its initial article and note snapshot even if the reader changes programmatically", async (t) => {
   const app = await reader();
   t.after(app.close);
   app.edit("第一篇文章的保存快照");
+  const requestedMark = clickTextMark(app, "用于验证", "highlight");
   const entered = deferred();
   const release = deferred();
   let blocked = false;
@@ -282,11 +333,15 @@ test("save writes its initial article and note snapshot even if the reader chang
   const saving = app.api.saveNote();
   await entered.promise;
   // Exercise the snapshot guarantee independently of the click-navigation guard.
-  app.api.renderArticle(note("second", { note: "另一篇文章的内容" }));
+  app.api.renderArticle(note("second", { note: "另一篇文章的内容", annotations: [{type: "text", style: "wavy", start: 0, end: 5, exact: "正文小标题"}] }));
   release.resolve();
   await saving;
   assert.equal(app.local.values["note:first"].note, "第一篇文章的保存快照");
   assert.equal(app.local.values["note:second"].note, "");
+  assert.deepEqual(app.local.values["note:first"].annotations, [requestedMark]);
+  assert.equal(app.local.values["note:first"].content, note("first").content);
+  assert.equal(app.local.values["note:second"].annotations, undefined);
+  assert.ok(app.element("article-body").querySelector('[data-pageleaf-annotation="wavy"]'));
   assert.equal(app.element("article-title").textContent, "文章 second");
   assert.equal(app.element("personal-note").value, "另一篇文章的内容");
 });
@@ -311,7 +366,7 @@ test("simultaneous saves in two windows preserve both edits by copying the stale
   ]);
   assert.equal(new Set(saved.map((value) => value.id)).size, 2);
   assert.notEqual(first.window.location.hash, second.window.location.hash);
-  assert.match(second.element("toast").textContent, /另存为新笔记/);
+  assert.match(second.element("toast").textContent, /new note/);
 });
 
 test("opening a note from the library updates the URL hash and preserves unsaved-change cancellation", async (t) => {
@@ -320,13 +375,13 @@ test("opening a note from the library updates the URL hash and preserves unsaved
   app.edit("尚未保存的想法");
   app.window.confirm = () => false;
   app.window.document
-    .querySelector('[aria-label="打开笔记：文章 second"]')
+    .querySelector('[aria-label="Open note: 文章 second"]')
     .click();
   assert.equal(app.window.location.hash, "#note=first");
   assert.equal(app.element("personal-note").value, "尚未保存的想法");
   app.window.confirm = () => true;
   app.window.document
-    .querySelector('[aria-label="打开笔记：文章 second"]')
+    .querySelector('[aria-label="Open note: 文章 second"]')
     .click();
   assert.equal(app.window.location.hash, "#note=second");
   assert.equal(app.element("article-title").textContent, "文章 second");
@@ -336,7 +391,7 @@ test("a failed deletion leaves the confirmation open and permits retry", async (
   const app = await reader();
   t.after(app.close);
   app.window.document
-    .querySelector('[aria-label="删除笔记：文章 first"]')
+    .querySelector('[aria-label="Delete note: 文章 first"]')
     .click();
   let failures = 1;
   app.local.beforeRemove = async () => {
@@ -346,7 +401,7 @@ test("a failed deletion leaves the confirmation open and permits retry", async (
   assert.ok(app.local.values["note:first"]);
   assert.equal(app.element("delete-dialog").open, true);
   assert.equal(app.element("confirm-delete").disabled, false);
-  assert.match(app.element("toast").textContent, /删除失败/);
+  assert.match(app.element("toast").textContent, /Deletion failed/);
   await app.api.deleteNote();
   assert.equal(app.local.values["note:first"], undefined);
   assert.equal(app.element("delete-dialog").open, false);
@@ -369,8 +424,8 @@ test("storage rejection keeps unsaved notes available and re-enables controls", 
   );
   assert.equal(app.element("save").disabled, false);
   assert.equal(app.element("personal-note").disabled, false);
-  assert.match(app.element("save-state").textContent, /未保存/);
-  assert.match(app.element("toast").textContent, /存储空间不足或不可用/);
+  assert.match(app.element("save-state").textContent, /Unsaved/);
+  assert.match(app.element("toast").textContent, /storage is full or unavailable/);
 });
 
 test("the library backup download contains saved notes without settings or reading progress", async (t) => {
@@ -407,7 +462,7 @@ test("backup import previews changes, preserves existing notes and skips a repea
   ]);
   selectBackup(app, backup);
   await until(() => app.element("import-dialog").open, "the import preview");
-  assert.match(app.element("import-summary").textContent, /恢复 1 篇.*跳过 1 篇/);
+  assert.match(app.element("import-summary").textContent, /Notes to restore: 1. Duplicates to skip: 1/);
   assert.equal(app.local.values["note:third"], undefined);
   assert.deepEqual(app.local.values["note:first"], original);
   app.element("confirm-import").click();
@@ -417,7 +472,7 @@ test("backup import previews changes, preserves existing notes and skips a repea
   assert.equal(app.element("note-count").textContent, "3");
   selectBackup(app, backup);
   await until(() => app.element("import-dialog").open, "the repeated import preview");
-  assert.match(app.element("import-summary").textContent, /恢复 0 篇.*跳过 2 篇/);
+  assert.match(app.element("import-summary").textContent, /Notes to restore: 0. Duplicates to skip: 2/);
   app.element("confirm-import").click();
   await until(() => !app.element("import-dialog").open && !app.element("confirm-import").disabled, "the repeated import result");
   assert.equal(Object.keys(app.local.values).filter(key => key.startsWith("note:")).length, 3);
@@ -450,5 +505,244 @@ test("printing includes the current unsaved personal note as text and refreshes 
   app.edit("打印前又补充了一句话。");
   app.window.dispatchEvent(new app.window.Event("beforeprint"));
   assert.equal(app.element("print-note").textContent, "打印前又补充了一句话。");
-  assert.match(app.element("save-state").textContent, /未保存/);
+  assert.match(app.element("save-state").textContent, /Unsaved/);
+});
+
+test("switching UI language preserves an unsaved draft, source text and article direction", async (testContext) => {
+  const app = await reader();
+  testContext.after(app.close);
+  const body = app.element("article-body").innerHTML;
+  const hash = app.window.location.hash;
+  let confirmCalls = 0;
+  app.window.confirm = () => { confirmCalls += 1; return false; };
+  app.edit("My own words — 我的想法 — أفكاري");
+  app.element("language").value = "ar";
+  app.element("language").dispatchEvent(new app.window.Event("change", {bubbles: true}));
+  await until(() => app.local.values.settings?.language === "ar", "the saved UI language");
+  assert.equal(app.window.document.documentElement.lang, "ar");
+  assert.equal(app.window.document.documentElement.dir, "rtl");
+  assert.equal(app.element("article-body").lang, "zh-CN");
+  assert.equal(app.element("article-body").dir, "auto");
+  assert.equal(app.element("article-body").innerHTML, body);
+  assert.equal(app.element("personal-note").value, "My own words — 我的想法 — أفكاري");
+  assert.equal(app.element("save-state").textContent, i18n.t("ar", "unsavedChanges"));
+  assert.equal(app.window.location.hash, hash);
+  assert.equal(new URLSearchParams(app.window.location.search).get("lang"), "ar");
+  assert.equal(confirmCalls, 0);
+  assert.equal(app.local.values["note:first"].note, "");
+  // Top-level navigation must still honor the draft after a language switch.
+  const event = new app.window.MouseEvent("click", {bubbles: true, cancelable: true});
+  const link = app.window.document.querySelector(".reader-nav a");
+  link.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, true);
+  assert.equal(confirmCalls, 1);
+});
+
+test("English fallback, preferred browser locale and explicit URL language resolve independently of article language", async (testContext) => {
+  const fallback = await reader({languages: ["pt-BR"]});
+  const french = await reader({languages: ["it", "fr-CA"]});
+  const german = await reader({languages: ["fr"], hash: "?lang=de#note=first"});
+  for (const app of [fallback, french, german]) testContext.after(app.close);
+  assert.equal(fallback.window.document.documentElement.lang, "en");
+  assert.equal(french.window.document.documentElement.lang, "fr");
+  assert.equal(german.window.document.documentElement.lang, "de");
+  assert.equal(german.element("article-title").textContent, "文章 first");
+  assert.match(german.element("article-meta").textContent, /1 Min/);
+});
+
+test("saved language survives reopening and no supported locale has unresolved UI keys", async (testContext) => {
+  const local = memoryStorage({"note:first": note("first"), settings: {dark: false, fontSize: 21, language: "ja"}});
+  const app = await reader({local});
+  testContext.after(app.close);
+  assert.equal(app.window.document.documentElement.lang, "ja");
+  for (const language of i18n.SUPPORTED_LANGUAGES) {
+    app.element("language").value = language;
+    app.element("language").dispatchEvent(new app.window.Event("change", {bubbles: true}));
+    await until(() => app.local.values.settings?.language === language, "language persistence");
+    assert.equal(app.element("save").textContent, i18n.t(language, "saveChanges"));
+    for (const element of app.window.document.querySelectorAll("[data-i18n]")) {
+      assert.notEqual(element.textContent, element.getAttribute("data-i18n"));
+    }
+  }
+});
+
+
+test("sample articles keep their actual language when the UI changes", async (testContext) => {
+  const app = await reader({hash: "?lang=es&demo=1"});
+  testContext.after(app.close);
+  const sampleLanguage = makeDemoArticle("es").lang;
+  assert.equal(app.element("article-body").lang, sampleLanguage);
+  assert.equal(app.element("article-title").textContent, makeDemoArticle("es").title);
+  const body = app.element("article-body").innerHTML;
+  app.element("language").value = "zh-CN";
+  app.element("language").dispatchEvent(new app.window.Event("change", {bubbles: true}));
+  await until(() => app.local.values.settings?.language === "zh-CN", "sample language preference");
+  assert.equal(app.element("article-body").lang, sampleLanguage);
+  assert.equal(app.element("article-body").innerHTML, body);
+  assert.equal(app.element("article-title").textContent, makeDemoArticle("es").title);
+  assert.equal(new URLSearchParams(app.window.location.search).get("demo"), "1");
+});
+
+test("article text marks become unsaved edits, save separately from the source, and restore on reopening", async (t) => {
+  const app = await reader(); t.after(app.close);
+  const original = structuredClone(app.local.values["note:first"]);
+  const text = app.element("article-body").textContent;
+  const highlight = clickTextMark(app, "用于验证", "highlight");
+  const wavy = clickTextMark(app, "本机保存行为", "wavy");
+  assert.equal(app.element("save-state").textContent, i18n.t("en", "unsavedChanges"));
+  assert.ok(app.element("article-body").querySelector('mark[data-pageleaf-annotation="highlight"]'));
+  assert.ok(app.element("article-body").querySelector('span[data-pageleaf-annotation="wavy"]'));
+  assert.equal(app.element("article-body").textContent, text);
+  assert.equal(app.local.values["note:first"].annotations, undefined, "unsaved marks must not bypass Save");
+  app.edit("Keep this personal note.");
+  await app.api.saveNote();
+  assert.deepEqual(app.local.values["note:first"].annotations, [highlight, wavy]);
+  assert.equal(app.local.values["note:first"].content, original.content);
+  assert.equal(app.local.values["note:first"].markdown, original.markdown);
+  assert.equal(app.local.values["note:first"].note, "Keep this personal note.");
+  const reopened = await reader({local: app.local}); t.after(reopened.close);
+  assert.equal(reopened.element("personal-note").value, "Keep this personal note.");
+  assert.equal(reopened.element("article-body").textContent, text);
+  assert.equal(reopened.element("article-body").querySelector('[data-pageleaf-annotation="highlight"]').textContent, highlight.exact);
+  assert.equal(reopened.element("article-body").querySelector('[data-pageleaf-annotation="wavy"]').textContent, wavy.exact);
+  assert.equal(reopened.element("save-state").textContent, i18n.t("en", "savedLocal"));
+});
+
+test("organizing marked text previews it without replacing the draft and appends only after confirmation", async (t) => {
+  const app = await reader(); t.after(app.close);
+  const original = structuredClone(app.local.values["note:first"]);
+  const draft = "    My existing thought — 这句话要保留。  \n";
+  app.edit(draft);
+  const mark = clickTextMark(app, "用于验证本机保存行为", "underline");
+  app.element("organize").click();
+  assert.equal(app.element("organize-dialog").open, true);
+  const preview = app.element("organize-preview").textContent;
+  assert.ok(preview.includes(mark.exact));
+  assert.equal(app.element("organize-preview").querySelectorAll("ol > li").length, 1);
+  assert.equal(preview.includes("##"), false, "the preview shows readable excerpts, not Markdown syntax");
+  const appended = `${draft}\n\n${i18n.t("en", "organizeTitle")}\n• ${mark.exact}`;
+  assert.equal(app.element("personal-note").value, draft);
+  assert.deepEqual(app.local.values["note:first"], original);
+  app.element("cancel-organize").click();
+  assert.equal(app.element("organize-dialog").open, false);
+  app.element("append-organize").click();
+  assert.equal(app.element("personal-note").value, draft, "a closed preview cannot append stale generated notes");
+  assert.deepEqual(app.local.values["note:first"], original);
+  app.element("organize").click();
+  assert.equal(app.element("organize-dialog").open, true);
+  app.element("append-organize").click();
+  assert.equal(app.element("organize-dialog").open, false);
+  assert.equal(app.element("personal-note").value, appended);
+  assert.equal(app.element("save-state").textContent, i18n.t("en", "unsavedChanges"));
+  assert.deepEqual(app.local.values["note:first"], original);
+  await app.api.saveNote();
+  assert.equal(app.local.values["note:first"].note, appended);
+  assert.deepEqual(app.local.values["note:first"].annotations, [mark]);
+  assert.equal(app.local.values["note:first"].content, original.content);
+});
+
+test("undo and confirmed clear change marks without deleting personal notes or article text", async (t) => {
+  const app = await reader(); t.after(app.close);
+  const original = structuredClone(app.local.values["note:first"]);
+  const draft = "A personal note that must survive clearing marks.";
+  app.edit(draft);
+  const text = app.element("article-body").textContent;
+  clickTextMark(app, "用于验证", "highlight");
+  clickTextMark(app, "本机保存行为", "wavy");
+  app.element("undo-mark").click();
+  assert.ok(app.element("article-body").querySelector('[data-pageleaf-annotation="highlight"]'));
+  assert.equal(app.element("article-body").querySelector('[data-pageleaf-annotation="wavy"]'), null);
+  assert.equal(app.element("personal-note").value, draft);
+  app.window.confirm = () => false;
+  app.element("clear-marks").click();
+  assert.ok(app.element("article-body").querySelector('[data-pageleaf-annotation="highlight"]'));
+  app.window.confirm = () => true;
+  app.element("clear-marks").click();
+  assert.equal(app.element("article-body").querySelector('[data-pageleaf-annotation]'), null);
+  assert.equal(app.element("personal-note").value, draft);
+  assert.equal(app.element("article-body").textContent, text);
+  assert.equal(app.element("undo-mark").disabled, true);
+  assert.equal(app.element("clear-marks").disabled, true);
+  assert.deepEqual(app.local.values["note:first"], original);
+  await app.api.saveNote();
+  assert.deepEqual(app.local.values["note:first"].annotations, []);
+  assert.equal(app.local.values["note:first"].note, draft);
+  assert.equal(app.local.values["note:first"].content, original.content);
+});
+
+test("pen pointer input saves normalized strokes and restores its drawing without changing source text", async (t) => {
+  const app = await reader(); t.after(app.close);
+  const original = structuredClone(app.local.values["note:first"]);
+  const text = app.element("article-body").textContent;
+  const layer = app.element("pen-layer");
+  layer.getBoundingClientRect = () => ({left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100});
+  app.element("pen").click();
+  assert.equal(app.element("pen").getAttribute("aria-pressed"), "true");
+  assert.ok(app.element("article-surface").classList.contains("drawing"));
+  assert.equal(pointer(app, "pointerdown", 10, 20).defaultPrevented, true);
+  pointer(app, "pointermove", 50, 60);
+  pointer(app, "pointerup", 90, 80);
+  const path = layer.querySelector("path");
+  assert.ok(path);
+  assert.equal(path.getAttribute("d"), "M100.00,200.00 L500.00,600.00 L900.00,800.00");
+  assert.equal(app.element("save-state").textContent, i18n.t("en", "unsavedChanges"));
+  assert.equal(app.element("article-body").textContent, text);
+  app.edit("My pen annotation.");
+  await app.api.saveNote();
+  assert.deepEqual(app.local.values["note:first"].annotations, [{type: "pen", points: [[0.1, 0.2], [0.5, 0.6], [0.9, 0.8]]}]);
+  assert.equal(app.local.values["note:first"].content, original.content);
+  assert.equal(app.element("pen").getAttribute("aria-pressed"), "false");
+  const reopened = await reader({local: app.local}); t.after(reopened.close);
+  assert.equal(reopened.element("pen-layer").querySelector("path").getAttribute("d"), path.getAttribute("d"));
+  assert.equal(reopened.element("personal-note").value, "My pen annotation.");
+  assert.equal(reopened.element("article-body").textContent, text);
+});
+
+test("collecting section excerpts can highlight matching source sentences without replacing the saved note", async (t) => {
+  const original = note("first", {
+    note: "Already saved: check access to the room.",
+    content: '<h2>Before the meetup</h2><p>  Confirm <strong>the room</strong>\n before Friday. Send a reminder later.</p>',
+    markdown: "## Before the meetup\n\nConfirm **the room** before Friday. Send a reminder later.",
+    textContent: "Before the meetup  Confirm the room\n before Friday. Send a reminder later.",
+    lang: "en",
+  });
+  const local = memoryStorage({"note:first": original});
+  const app = await reader({local}); t.after(app.close);
+  const text = app.element("article-body").textContent;
+  assert.equal(app.element("article-body").querySelector("mark"), null);
+  assert.equal(app.element("save-state").textContent, i18n.t("en", "savedLocal"));
+  app.element("organize").click();
+  assert.equal(app.element("organize-dialog").open, true);
+  assert.ok(app.element("organize-preview").textContent.includes("Confirm the room before Friday."));
+  assert.equal(app.element("personal-note").value, original.note);
+  app.element("mark-organized").click();
+  assert.equal(app.element("organize-dialog").open, false);
+  assert.ok(app.element("article-body").querySelector('mark[data-pageleaf-annotation="highlight"]'));
+  assert.equal(app.element("article-body").textContent, text);
+  assert.equal(app.element("personal-note").value, original.note);
+  assert.equal(app.element("save-state").textContent, i18n.t("en", "unsavedChanges"));
+  assert.deepEqual(app.local.values["note:first"], original);
+  await app.api.saveNote();
+  const saved = app.local.values["note:first"];
+  assert.equal(saved.annotations.length, 1);
+  assert.equal(saved.annotations[0].exact.replace(/\s+/g, " "), "Confirm the room before Friday.");
+  assert.equal(saved.annotations[0].style, "highlight");
+  assert.equal(saved.content, original.content);
+  assert.equal(saved.note, original.note);
+  const reopened = await reader({local}); t.after(reopened.close);
+  assert.ok(reopened.element("article-body").querySelector('mark[data-pageleaf-annotation="highlight"]'));
+  assert.equal(reopened.element("article-body").textContent, text);
+  assert.equal(reopened.element("personal-note").value, original.note);
+});
+
+test("opening the demo after a missing note clears its stale route and remains reloadable", async (t) => {
+  const app = await reader({hash: "#note=missing"}); t.after(app.close);
+  assert.equal(app.element("error-view").hidden, false);
+  app.element("error-demo").click();
+  assert.equal(app.window.location.hash, "");
+  assert.equal(new URL(app.window.location.href).searchParams.has("demo"), true);
+  assert.equal(app.element("error-view").hidden, true);
+  const reopened = await reader({hash: app.window.location.search}); t.after(reopened.close);
+  assert.equal(reopened.element("article-title").textContent, app.element("article-title").textContent);
+  assert.equal(reopened.element("error-view").hidden, true);
 });

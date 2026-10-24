@@ -10,3 +10,4 @@ work/
 coverage/
 playwright-report/
 test-results/
+site-dist/

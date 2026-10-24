@@ -1,65 +1,95 @@
 # Pageleaf
 
-Turn an article into a readable, editable, portable note.
+Read an article. Add your thoughts. Keep a portable copy.
 
-Pageleaf is a local-first Chrome extension. Invoke its toolbar action to extract an article or selected text, add your thoughts, and save, search or export the result. **v0.2.0** has a minimal white/black interface. No account, API key or paid service is required.
+Pageleaf is a local-first Chrome extension that turns web articles or selected text into readable notes. **v0.3.0** adds a proper Home, searchable Help center, Privacy page and About page, a new black-and-white identity, and seven interface languages. No account, API key or subscription is required.
 
-[简体中文](README.md) · [Privacy](PRIVACY.md) · [Contributing](CONTRIBUTING.md) · [Releases](https://github.com/2022x126/pageleaf/releases)
+[中文使用说明](README.md#中文使用说明) · [Website and demo](https://2022x126.github.io/pageleaf/) · [Privacy](PRIVACY.md) · [Contributing](CONTRIBUTING.md) · [Download development releases](https://github.com/2022x126/pageleaf/releases)
 
-![White reader web preview](docs/reader.png)
+![Pageleaf Home web preview](docs/home.png)
 
-## Features
+## A complete starting point
 
-- On-demand article extraction, with selected text taking priority.
-- A table of contents, font controls, white/black themes and personal notes.
-- Full-text search across titles, source URLs, personal notes, article text and Markdown.
-- Explicitly saved local notes, confirmed deletion and reading-position restoration for saved notes only.
-- Markdown copy/download with source attribution, headings, lists, code and simple tables.
-- Whole-library JSON backup and validated restoration, with content sanitized again and existing notes preserved.
-- Browser printing: choose a printer or Save as PDF in the browser's print dialog.
+Home explains the product, offers a reader demo and leads to installation instructions. The Help center covers capture, saving, search, export, backups, shortcuts, troubleshooting and data deletion, with a search field for finding a topic. Privacy describes actual local storage and permissions; About includes project status, licenses and contribution links.
 
-There are no illustrations, gradients, textures or remote fonts. [Black reader](docs/reader-dark.png) and [welcome page](docs/welcome.png) images are web previews, not proof of an installed-extension acceptance test.
+All four pages ship inside the extension. A new installation opens Home, and Chrome's extension options also opens Home. The reader links back to Home, Help and Privacy. These pages do not require an external service; links to GitHub are external and open only when selected.
+
+## Languages and reading
+
+The interface and product guides are available in:
+
+| Language | UI locale |
+| --- | --- |
+| English | `en` |
+| 简体中文 | `zh-CN` |
+| Español | `es` |
+| Français | `fr` |
+| Deutsch | `de` |
+| 日本語 | `ja` |
+| العربية | `ar` |
+
+Automatic selection follows browser language preferences, with English as the fallback. The language selector lets you choose a language explicitly after the initial automatic selection. Arabic uses a right-to-left interface; dates and numeric labels use locale-aware formatting. **Changing the interface language does not translate articles or personal notes.** Translation corrections and accessibility feedback are welcome; this does not claim native-speaker review or support for every language or website.
+
+The shared product name is Pageleaf, with 叶笺 used in the Chinese interface. The [Leaf-P logo](docs/BRAND.md) uses a bookmark spine and a leaf-shaped space, without language-specific lettering. The product keeps the minimal white/black design: no decorative backgrounds, gradients, textures or remote fonts.
+
+## Useful features
+
+- Capture an article on demand; selected text takes priority.
+- Read with a table of contents, adjustable type, white/black appearance and personal notes.
+- Select text to highlight it, underline it, or add a wavy underline. Draw with the pen; undo or clear your marks. Save to keep them.
+- Collect marked quotes, or the first sentence of each section, into a preview. Add the result to your note without replacing your writing. This uses original sentences, not an AI summary.
+- Search saved titles, source URLs, personal notes, article text and Markdown.
+- Explicitly save notes in the current Chrome profile; reopen saved notes at their last reading position. Deletion requires confirmation.
+- Copy or download Markdown with the source, article, your personal note and marked quotations. Pen strokes stay in the saved note and JSON backup; they are not converted to Markdown.
+- Export a whole-library JSON backup; preview a restore, re-sanitize content, skip duplicates and preserve existing notes.
+- Open the browser's print dialog to choose a printer or Save as PDF.
+
+![Reader web preview](docs/reader.png)
 
 ## Install a development build
 
-Download and extract the install ZIP from Releases. Open `chrome://extensions`, enable Developer mode, select **Load unpacked**, and choose the directory containing `manifest.json`. Pin Pageleaf, open an ordinary HTTP/HTTPS article and invoke the toolbar action or `Alt/⌥ + Shift + L`.
+Pageleaf is a development release and is **not published in the Chrome Web Store**. Download the installation ZIP from [Releases](https://github.com/2022x126/pageleaf/releases) and extract it. In desktop Chrome 116+, open `chrome://extensions`, enable Developer mode, select **Load unpacked**, and choose the extracted directory containing `manifest.json`. Pin Pageleaf, open an ordinary HTTP/HTTPS article and click its toolbar icon, or use `Alt/⌥ + Shift + L`.
 
-To build from source, use Node.js 22+ and desktop Chrome:
+To build from source, use Node.js 22+:
 
 ```sh
 npm ci
 npm run check
 ```
 
-Load the generated **`dist` directory**, not the source root or ZIP file.
+Load the generated **`dist` directory**, not the source root or ZIP file. You can reopen Home from the extension's options. Capture still starts from the toolbar or shortcut on the article you want to read.
 
 ## Backup and local data
 
-JSON backups are limited to **20 MB**, the library to **100 notes**, and each saved or restored note to **1 MB**. Restoration validates format, sizes and the resulting library count before writing. It re-sanitizes content/links and rebuilds Markdown. Existing IDs and matching source/extraction-mode/article-text combinations are skipped; existing notes are not overwritten. Backups include notes only, excluding reading progress and display preferences. If the complete library exceeds the backup size limit, export individual Markdown files before reducing it.
+The library is limited to **100 notes**, each saved or restored note to **1 MB**, and a JSON backup to **20 MB**. Restoration validates format, sizes and the resulting library count before writing. Existing IDs and matching source/extraction-mode/article-text combinations are skipped; existing notes are not overwritten. Backups contain notes only, excluding reading positions and language/display preferences. If the library exceeds the backup file limit, export individual Markdown files before reducing it.
 
-Unsaved captures stay in browser session memory, with at most six records; entries older than 24 hours are pruned when a new capture is made, and browser exit clears them. Explicitly saved notes, reading positions and preferences stay in the current Chrome profile without additional encryption. Deleting a note also removes its saved reading position, but not exported Markdown, JSON or PDF files.
+Unsaved captures stay in browser session memory, with at most six records. Captures older than 24 hours are pruned when a new capture is made; browser exit clears session captures. Explicitly saved notes, reading positions and preferences stay in the current Chrome profile without additional encryption. Deleting a note also deletes its reading position, but not exported files or printed copies. Back up before uninstalling or changing profiles.
 
-Permissions are only `activeTab`, `scripting` and `storage`. No persistent host access, telemetry or cloud sync is used. Remote article images and embeds are removed. Opening a source or article link is a normal browser navigation. Credentials, query strings and fragments are stripped from links, which may require manual correction on query-based sites. See [PRIVACY.md](PRIVACY.md).
+Permissions remain `activeTab`, `scripting` and `storage`. There is no persistent host access, telemetry or cloud sync. Original article images and embeds are removed. Source and article links have credentials, query strings and fragments stripped; some links may need manual correction. Opening an external link is a browser navigation to that site's service. See [PRIVACY.md](PRIVACY.md).
 
-## Development and validation
+## Development and verification
 
 ```sh
-npm test
-npm run build
-npm run check
-npm run package
+npm test                         # extraction, safety, storage and interface behavior
+npm run build                    # build dist; no node_modules needed at runtime
+npm run check                    # tests, build, permissions, resources and CSP checks
+npm run package                  # install/source ZIPs in the parent directory
+npm run build:site               # standalone static product site in site-dist
+node scripts/generate-icons.mjs  # reproduce SVG and correctly sized PNG icons
 ```
 
-The lockfile fixes dependency versions; all runtime code ships with the extension. Packaging creates install and source ZIPs in the parent directory. See [third-party licenses](THIRD_PARTY_NOTICES.md), [maintenance notes](docs/MAINTENANCE.md) and [validation notes](docs/VALIDATION.md).
+All runtime code and product translations are bundled. Dependency versions are fixed by the lockfile. See [third-party licenses](THIRD_PARTY_NOTICES.md), [maintenance notes](docs/MAINTENANCE.md) and [validation notes](docs/VALIDATION.md).
 
-Automated tests and web previews do not replace installed Chrome checks for loading, toolbar capture, persistence across browser restarts or downloaded files.
+Automated tests and web previews do not replace installed Chrome checks for toolbar capture, browser-restart persistence or downloaded files. Screenshots in this README show public sample content in a web preview; they do not imply Chrome Web Store publication or installed-extension acceptance.
 
-## Status and limitations
+## Local product preview
 
-v0.2.0 is a development version, not a Chrome Web Store publication. Extraction depends on page structure. PDFs, image/video-only articles, internal browser pages and some complex applications are unsupported. Pageleaf does not bypass login, paywalls or access controls, or fetch unloaded pagination/iframe contents. Images are omitted; complex tables and formulas may need manual correction.
+After building, run `python3 -m http.server 8765 --bind 127.0.0.1` from the project directory. Open `http://127.0.0.1:8765/dist/index.html` for Home or `http://127.0.0.1:8765/dist/reader.html?demo` for the reader sample. Language and white/black appearance choices may persist in this site's local browser storage; **preview articles and notes stay in page memory and disappear on refresh**. Export anything you want to keep. The preview cannot capture another browser tab.
 
-Original code is [MIT licensed](LICENSE). Extracted content remains subject to its authors' rights. Report problems through [GitHub Issues](https://github.com/2022x126/pageleaf/issues).
+`npm run build:site` also builds the standalone static product site in `site-dist` without the extension manifest or background worker. Hosting and deployment boundaries are documented in [WEBSITE.md](docs/WEBSITE.md). A hosted product site makes normal requests to its hosting provider for pages and assets; it still does not upload preview articles or notes. A generated site is not proof of a live deployment.
 
-## Local web preview
+## Limits and open source
 
-After building, run `python3 -m http.server 8765 --bind 127.0.0.1` from the project directory and open `http://127.0.0.1:8765/dist/reader.html?demo`. Preview notes live only in the current page and disappear on refresh; export anything you want to keep.
+Extraction depends on page structure. PDFs, image/video-only content, browser internal pages and some complex applications are unsupported. Pageleaf does not bypass logins, paywalls or access controls, or fetch unloaded pagination/iframe contents. Images are omitted; complex tables and formulas may need manual correction. Desktop Chrome is the current target; mobile browsers and other browser configurations have no blanket compatibility guarantee.
+
+Original code is [MIT licensed](LICENSE). Captured articles remain subject to their authors' rights; keep source attribution when sharing. Report reproducible problems or translation corrections through [GitHub Issues](https://github.com/2022x126/pageleaf/issues), without uploading private articles, notes or backups.

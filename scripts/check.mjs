@@ -11,6 +11,18 @@ const manifest = JSON.parse(
   await readFile(path.join(dist, "manifest.json"), "utf8"),
 );
 const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+assert.equal(manifest.default_locale, "en", "English is the manifest fallback");
+for (const locale of ["en", "zh_CN", "es", "fr", "de", "ja", "ar"]) {
+  const messages = JSON.parse(await readFile(path.join(dist, "_locales", locale, "messages.json"), "utf8"));
+  for (const key of ["extensionName", "extensionDescription", "actionTitle", "commandDescription"])
+    assert.ok(messages[key]?.message?.trim(), `Missing ${locale} manifest message: ${key}`);
+  assert.ok(messages.extensionName.message.length <= 75, `Long ${locale} name`);
+  assert.ok(messages.extensionDescription.message.length <= 132, `Long ${locale} description`);
+}
+assert.equal(manifest.options_ui?.page, "index.html", "Product home must be accessible from extension options");
+assert.equal(manifest.options_ui?.open_in_tab, true);
+for (const page of ["index.html", "help.html", "privacy.html", "about.html", "reader.html"])
+  await access(path.join(dist, page));
 assert.equal(manifest.manifest_version, 3, "Manifest V3 is required");
 assert.equal(
   manifest.version,

@@ -250,3 +250,24 @@ test("a library-limit failure produces no partial plan or input mutation", () =>
   assert.equal(incoming.length, 1);
   assert.deepEqual(planImport([], []), { notesToAdd: [], skipped: 0 });
 });
+
+test('backup preserves validated text and pen marks and drops unsafe annotation fields', () => {
+  const original = note();
+  const template = document().createElement('template');
+  template.innerHTML = original.content;
+  const text = template.content.textContent;
+  const exact = '正文标题';
+  const start = text.indexOf(exact);
+  original.annotations = [
+    {type:'text',style:'wavy',start,end:start+exact.length,exact,html:'<script>unsafe</script>'},
+    {type:'pen',points:[[0.1,0.2],[0.5,0.4]],css:'url(https://example.test)'},
+    {type:'text',style:'script',start:0,end:3,exact:'bad'},
+  ];
+  const backup = createBackup([original]);
+  assert.ok(!backup.includes('<script>unsafe') && !backup.includes('url(https://example.test)'));
+  const restored = parseBackup(backup, document()).notes[0];
+  assert.equal(restored.annotations.length, 2);
+  assert.deepEqual(restored.annotations[0], {type:'text',style:'wavy',start,end:start+exact.length,exact});
+  assert.deepEqual(restored.annotations[1], {type:'pen',points:[[0.1,0.2],[0.5,0.4]]});
+  assert.equal(restored.content, original.content);
+});

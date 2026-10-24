@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Pageleaf"
+  },
+  "extensionDescription": {
+    "message": "Convierte artículos y texto seleccionado en notas locales. Lee, busca y exporta Markdown."
+  },
+  "actionTitle": {
+    "message": "Guardar esta página con Pageleaf"
+  },
+  "commandDescription": {
+    "message": "Guardar la página actual como nota"
+  }
+}

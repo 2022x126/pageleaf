@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Pageleaf"
+  },
+  "extensionDescription": {
+    "message": "記事や選択したテキストをローカルのノートに。閲覧、全文検索、バックアップ、Markdown 出力に対応。"
+  },
+  "actionTitle": {
+    "message": "Pageleaf でこのページを保存"
+  },
+  "commandDescription": {
+    "message": "現在のページをノートとして保存"
+  }
+}

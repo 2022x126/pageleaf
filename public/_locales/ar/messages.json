@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Pageleaf"
+  },
+  "extensionDescription": {
+    "message": "حوّل المقالات والنص المحدد إلى ملاحظات محلية. اقرأ وابحث واحتفظ بنسخة احتياطية وصدّر Markdown."
+  },
+  "actionTitle": {
+    "message": "حفظ هذه الصفحة باستخدام Pageleaf"
+  },
+  "commandDescription": {
+    "message": "حفظ الصفحة الحالية كملاحظة"
+  }
+}
