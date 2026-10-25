@@ -224,7 +224,7 @@ var SITE_CONTENT = {
     "privacy": {
       "title": "Privacy",
       "lead": "What Pageleaf reads, what it saves and how to delete it.",
-      "updated": "Pageleaf 0.3.0 \xB7 24 October 2026",
+      "updated": "Pageleaf 0.3.1 \xB7 25 October 2026",
       "sections": [
         [
           "Local processing",
@@ -275,7 +275,7 @@ var SITE_CONTENT = {
         ],
         [
           "Development status",
-          "Version 0.3.0 is a development release, not yet published in the Chrome Web Store. Some pages cannot be captured correctly. Check important passages against the original article and review exported files."
+          "Version 0.3.1 is a development release, not yet published in the Chrome Web Store. Some pages cannot be captured correctly. Check important passages against the original article and review exported files."
         ],
         [
           "Source code and licenses",
@@ -477,7 +477,7 @@ var SITE_CONTENT = {
     "privacy": {
       "title": "\u9690\u79C1\u8BF4\u660E",
       "lead": "\u6269\u5C55\u4F1A\u8BFB\u53D6\u4EC0\u4E48\u3001\u4FDD\u5B58\u4EC0\u4E48\uFF0C\u4EE5\u53CA\u600E\u4E48\u5220\u9664\u3002",
-      "updated": "Pageleaf 0.3.0 \xB7 2026 \u5E74 10 \u6708 24 \u65E5",
+      "updated": "Pageleaf 0.3.1 \xB7 2026 \u5E74 10 \u6708 25 \u65E5",
       "sections": [
         [
           "\u672C\u673A\u5904\u7406",
@@ -528,7 +528,7 @@ var SITE_CONTENT = {
         ],
         [
           "\u76EE\u524D\u7684\u7248\u672C",
-          "0.3.0 \u662F\u5F00\u53D1\u7248\uFF0C\u8FD8\u6CA1\u4E0A\u67B6 Chrome \u5E94\u7528\u5546\u5E97\u3002\u6709\u4E9B\u7F51\u9875\u4E0D\u80FD\u6B63\u786E\u63D0\u53D6\uFF0C\u91CD\u8981\u5185\u5BB9\u8BF7\u5BF9\u7167\u539F\u6587\uFF0C\u5BFC\u51FA\u540E\u4E5F\u68C0\u67E5\u4E00\u4E0B\u3002"
+          "0.3.1 \u662F\u5F00\u53D1\u7248\uFF0C\u8FD8\u6CA1\u4E0A\u67B6 Chrome \u5E94\u7528\u5546\u5E97\u3002\u6709\u4E9B\u7F51\u9875\u4E0D\u80FD\u6B63\u786E\u63D0\u53D6\uFF0C\u91CD\u8981\u5185\u5BB9\u8BF7\u5BF9\u7167\u539F\u6587\uFF0C\u5BFC\u51FA\u540E\u4E5F\u68C0\u67E5\u4E00\u4E0B\u3002"
         ],
         [
           "\u6E90\u7801\u548C\u8BB8\u53EF",
@@ -730,7 +730,7 @@ var SITE_CONTENT = {
     "privacy": {
       "title": "Privacidad",
       "lead": "Qu\xE9 lee Pageleaf, qu\xE9 guarda y c\xF3mo borrarlo.",
-      "updated": "Pageleaf 0.3.0 \xB7 24 de octubre de 2026",
+      "updated": "Pageleaf 0.3.1 \xB7 25 de octubre de 2026",
       "sections": [
         [
           "Procesamiento local",
@@ -781,7 +781,7 @@ var SITE_CONTENT = {
         ],
         [
           "Estado del desarrollo",
-          "0.3.0 es una versi\xF3n de desarrollo a\xFAn no publicada en Chrome Web Store. Algunas p\xE1ginas no se capturan bien. Contrasta los pasajes importantes con el original y revisa tus exportaciones."
+          "0.3.1 es una versi\xF3n de desarrollo a\xFAn no publicada en Chrome Web Store. Algunas p\xE1ginas no se capturan bien. Contrasta los pasajes importantes con el original y revisa tus exportaciones."
         ],
         [
           "C\xF3digo y licencias",
@@ -983,7 +983,7 @@ var SITE_CONTENT = {
     "privacy": {
       "title": "Confidentialit\xE9",
       "lead": "Ce que Pageleaf lit, conserve et permet de supprimer.",
-      "updated": "Pageleaf 0.3.0 \xB7 24 octobre 2026",
+      "updated": "Pageleaf 0.3.1 \xB7 25 octobre 2026",
       "sections": [
         [
           "Traitement local",
@@ -1034,7 +1034,7 @@ var SITE_CONTENT = {
         ],
         [
           "\xC9tat du d\xE9veloppement",
-          "0.3.0 est une version de d\xE9veloppement non publi\xE9e sur le Chrome Web Store. Certaines pages sont mal captur\xE9es. Comparez les passages importants \xE0 l\u2019original et v\xE9rifiez vos exports."
+          "0.3.1 est une version de d\xE9veloppement non publi\xE9e sur le Chrome Web Store. Certaines pages sont mal captur\xE9es. Comparez les passages importants \xE0 l\u2019original et v\xE9rifiez vos exports."
         ],
         [
           "Code et licences",
@@ -1236,7 +1236,7 @@ var SITE_CONTENT = {
     "privacy": {
       "title": "Datenschutz",
       "lead": "Was Pageleaf liest, speichert und wie du es l\xF6schst.",
-      "updated": "Pageleaf 0.3.0 \xB7 24. Oktober 2026",
+      "updated": "Pageleaf 0.3.1 \xB7 25. Oktober 2026",
       "sections": [
         [
           "Lokale Verarbeitung",
@@ -1287,7 +1287,7 @@ var SITE_CONTENT = {
         ],
         [
           "Entwicklungsstand",
-          "0.3.0 ist eine Entwicklungsversion, noch nicht im Chrome Web Store. Manche Seiten werden nicht korrekt erfasst. Vergleiche wichtige Stellen mit dem Original und pr\xFCfe exportierte Dateien."
+          "0.3.1 ist eine Entwicklungsversion, noch nicht im Chrome Web Store. Manche Seiten werden nicht korrekt erfasst. Vergleiche wichtige Stellen mit dem Original und pr\xFCfe exportierte Dateien."
         ],
         [
           "Quellcode und Lizenzen",
@@ -1489,7 +1489,7 @@ var SITE_CONTENT = {
     "privacy": {
       "title": "\u30D7\u30E9\u30A4\u30D0\u30B7\u30FC",
       "lead": "\u8AAD\u307F\u53D6\u308B\u60C5\u5831\u3001\u4FDD\u5B58\u3059\u308B\u60C5\u5831\u3001\u524A\u9664\u3059\u308B\u65B9\u6CD5\u3002",
-      "updated": "Pageleaf 0.3.0 \xB7 2026 \u5E74 10 \u6708 24 \u65E5",
+      "updated": "Pageleaf 0.3.1 \xB7 2026 \u5E74 10 \u6708 25 \u65E5",
       "sections": [
         [
           "\u7AEF\u672B\u5185\u306E\u51E6\u7406",
@@ -1540,7 +1540,7 @@ var SITE_CONTENT = {
         ],
         [
           "\u958B\u767A\u72B6\u6CC1",
-          "0.3.0 \u306F\u958B\u767A\u7248\u3067\u3001Chrome \u30A6\u30A7\u30D6\u30B9\u30C8\u30A2\u3067\u306F\u672A\u516C\u958B\u3067\u3059\u3002\u6B63\u3057\u304F\u53D6\u308A\u8FBC\u3081\u306A\u3044\u30DA\u30FC\u30B8\u3082\u3042\u308A\u307E\u3059\u3002\u5927\u5207\u306A\u7B87\u6240\u306F\u539F\u6587\u3068\u6BD4\u3079\u3001\u66F8\u304D\u51FA\u3057\u305F\u30D5\u30A1\u30A4\u30EB\u3082\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002"
+          "0.3.1 \u306F\u958B\u767A\u7248\u3067\u3001Chrome \u30A6\u30A7\u30D6\u30B9\u30C8\u30A2\u3067\u306F\u672A\u516C\u958B\u3067\u3059\u3002\u6B63\u3057\u304F\u53D6\u308A\u8FBC\u3081\u306A\u3044\u30DA\u30FC\u30B8\u3082\u3042\u308A\u307E\u3059\u3002\u5927\u5207\u306A\u7B87\u6240\u306F\u539F\u6587\u3068\u6BD4\u3079\u3001\u66F8\u304D\u51FA\u3057\u305F\u30D5\u30A1\u30A4\u30EB\u3082\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002"
         ],
         [
           "\u30BD\u30FC\u30B9\u3068\u30E9\u30A4\u30BB\u30F3\u30B9",
@@ -1742,7 +1742,7 @@ var SITE_CONTENT = {
     "privacy": {
       "title": "\u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629",
       "lead": "\u0645\u0627 \u064A\u0642\u0631\u0623\u0647 Pageleaf \u0648\u0645\u0627 \u064A\u062D\u0641\u0638\u0647 \u0648\u0643\u064A\u0641 \u062A\u062D\u0630\u0641\u0647.",
-      "updated": "Pageleaf 0.3.0 \xB7 24 \u0623\u0643\u062A\u0648\u0628\u0631 2026",
+      "updated": "Pageleaf 0.3.1 \xB7 25 \u0623\u0643\u062A\u0648\u0628\u0631 2026",
       "sections": [
         [
           "\u0627\u0644\u0645\u0639\u0627\u0644\u062C\u0629 \u0627\u0644\u0645\u062D\u0644\u064A\u0629",
@@ -1793,7 +1793,7 @@ var SITE_CONTENT = {
         ],
         [
           "\u062D\u0627\u0644\u0629 \u0627\u0644\u062A\u0637\u0648\u064A\u0631",
-          "0.3.0 \u0625\u0635\u062F\u0627\u0631 \u062A\u0637\u0648\u064A\u0631 \u0644\u0645 \u064A\u064F\u0646\u0634\u0631 \u0641\u064A Chrome Web Store \u0628\u0639\u062F. \u0642\u062F \u0644\u0627 \u062A\u064F\u0644\u062A\u0642\u0637 \u0628\u0639\u0636 \u0627\u0644\u0635\u0641\u062D\u0627\u062A \u062C\u064A\u062F\u064B\u0627. \u0642\u0627\u0631\u0646 \u0627\u0644\u0645\u0642\u0627\u0637\u0639 \u0627\u0644\u0645\u0647\u0645\u0629 \u0628\u0627\u0644\u0623\u0635\u0644 \u0648\u0631\u0627\u062C\u0639 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u0635\u062F\u0651\u0631\u0629."
+          "0.3.1 \u0625\u0635\u062F\u0627\u0631 \u062A\u0637\u0648\u064A\u0631 \u0644\u0645 \u064A\u064F\u0646\u0634\u0631 \u0641\u064A Chrome Web Store \u0628\u0639\u062F. \u0642\u062F \u0644\u0627 \u062A\u064F\u0644\u062A\u0642\u0637 \u0628\u0639\u0636 \u0627\u0644\u0635\u0641\u062D\u0627\u062A \u062C\u064A\u062F\u064B\u0627. \u0642\u0627\u0631\u0646 \u0627\u0644\u0645\u0642\u0627\u0637\u0639 \u0627\u0644\u0645\u0647\u0645\u0629 \u0628\u0627\u0644\u0623\u0635\u0644 \u0648\u0631\u0627\u062C\u0639 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u0635\u062F\u0651\u0631\u0629."
         ],
         [
           "\u0627\u0644\u0643\u0648\u062F \u0648\u0627\u0644\u062A\u0631\u0627\u062E\u064A\u0635",
@@ -1815,6 +1815,7 @@ var SITE_CONTENT = {
 // src/i18n.js
 var SUPPORTED_LANGUAGES = Object.freeze(["en", "zh-CN", "es", "fr", "de", "ja", "ar"]);
 var rows = {
+  "hidePreview": ["Hide preview", "\u6536\u8D77", "Ocultar vista previa", "Masquer l\u2019aper\xE7u", "Vorschau schlie\xDFen", "\u30D7\u30EC\u30D3\u30E5\u30FC\u3092\u9589\u3058\u308B", "\u0625\u062E\u0641\u0627\u0621 \u0627\u0644\u0645\u0639\u0627\u064A\u0646\u0629"],
   "reader-nav-about": ["About", "\u5173\u4E8E", "Acerca de", "\xC0 propos", "\xDCber Pageleaf", "\u3053\u306E\u30A2\u30D7\u30EA\u306B\u3064\u3044\u3066", "\u062D\u0648\u0644"],
   "helpShortcut": ["Click Pageleaf in the Chrome toolbar, or press Alt/Option + Shift + L (if available).", "\u6253\u5F00\u6587\u7AE0\u540E\uFF0C\u70B9 Chrome \u5DE5\u5177\u680F\u91CC\u7684 Pageleaf\u3002\u4E5F\u53EF\u4EE5\u6309 Alt / Option + Shift + L\u3002", "Pulsa Pageleaf en la barra de Chrome o Alt/Option + May\xFAs + L, si est\xE1 disponible.", "Cliquez sur Pageleaf dans Chrome ou appuyez sur Alt/Option + Maj + L, si disponible.", "Pageleaf in der Chrome-Symbolleiste anklicken oder Alt/Option + Umschalt + L dr\xFCcken, falls verf\xFCgbar.", "\u30C4\u30FC\u30EB\u30D0\u30FC\u306E Pageleaf \u3092\u30AF\u30EA\u30C3\u30AF\u3059\u308B\u304B\u3001\u5229\u7528\u53EF\u80FD\u306A\u3089 Alt/Option + Shift + L \u3092\u62BC\u3057\u307E\u3059\u3002", "\u0627\u0636\u063A\u0637 Pageleaf \u0641\u064A \u0634\u0631\u064A\u0637 Chrome \u0623\u0648 Alt/Option + Shift + L \u0625\u0646 \u0643\u0627\u0646 \u0645\u062A\u0627\u062D\u064B\u0627."],
   "helpUnsupported": ["Pin Pageleaf from Chrome\u2019s extensions menu. PDFs, internal browser pages, extension stores and some app pages cannot be captured.", "\u5148\u5728 Chrome \u6269\u5C55\u83DC\u5355\u91CC\u56FA\u5B9A Pageleaf\u3002PDF\u3001\u6D4F\u89C8\u5668\u8BBE\u7F6E\u9875\u548C\u90E8\u5206\u7F51\u9875\u4E0D\u80FD\u4FDD\u5B58\u3002", "Fija Pageleaf desde el men\xFA de extensiones. No se capturan PDF, p\xE1ginas internas, tiendas de extensiones ni ciertas aplicaciones.", "\xC9pinglez Pageleaf depuis le menu des extensions. Les PDF, pages internes, boutiques d\u2019extensions et certaines applications ne peuvent pas \xEAtre captur\xE9s.", "Pageleaf im Erweiterungsmen\xFC anheften. PDFs, interne Browserseiten, Erweiterungs-Stores und manche Anwendungen lassen sich nicht erfassen.", "Chrome \u306E\u62E1\u5F35\u6A5F\u80FD\u30E1\u30CB\u30E5\u30FC\u304B\u3089 Pageleaf \u3092\u56FA\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002PDF\u3001\u30D6\u30E9\u30A6\u30B6\u30FC\u5185\u90E8\u30DA\u30FC\u30B8\u3001\u62E1\u5F35\u6A5F\u80FD\u30B9\u30C8\u30A2\u3001\u4E00\u90E8\u306E\u30A2\u30D7\u30EA\u306B\u306F\u5BFE\u5FDC\u3057\u3066\u3044\u307E\u305B\u3093\u3002", "\u062B\u0628\u0651\u062A Pageleaf \u0641\u064A \u0627\u0644\u0634\u0631\u064A\u0637 \u0645\u0646 \u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062A. \u0644\u0627 \u062A\u064F\u0644\u062A\u0642\u0637 \u0645\u0644\u0641\u0627\u062A PDF \u0648\u0635\u0641\u062D\u0627\u062A \u0627\u0644\u0645\u062A\u0635\u0641\u062D \u0627\u0644\u062F\u0627\u062E\u0644\u064A\u0629 \u0648\u0645\u062A\u0627\u062C\u0631 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062A \u0648\u0628\u0639\u0636 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u0627\u062A."],
@@ -2001,7 +2002,7 @@ function siteMarkup(page = "home", locale = "en") {
     <section id="install" class="install document-section"><div><span class="section-number" aria-hidden="true">01</span><h2>${escape(info.installTitle)}</h2><p>${escape(info.installIntro)}</p>${external("/releases", info.releases)}</div><ol>${info.installSteps.map((step) => `<li>${escape(step)}</li>`).join("")}</ol></section>
     <section class="help-articles section" aria-label="${escape(c.nav[1])}"><div class="help-search"><label for="help-search">${escape(info.search)}</label><input type="search" id="help-search" placeholder="${escape(info.placeholder)}" autocomplete="off" spellcheck="false"><p id="help-count" class="fineprint" role="status" aria-live="polite">${escape(info.results.replace("{count}", number(locale, info.questions.length)))}</p></div><div id="faq-list">${info.questions.map(([id, question, answer]) => `<details id="${id}" class="faq"><summary>${escape(question)}</summary><p>${escape(answer)}</p></details>`).join("")}</div><p id="help-empty" class="empty" hidden>${escape(info.empty)}</p><p class="support-link">${external("/issues", info.feedback)}</p></section>`;
   const sections = page === "privacy" ? [...info.sections, WEBSITE_PRIVACY[locale] ?? WEBSITE_PRIVACY.en] : info.sections;
-  return `${heading}<div class="document"><p class="fineprint">${escape(info.updated ?? `${c.version} \xB7 v0.3.0`)}</p>${sections.map(([title, body], i) => `<section class="document-section"><span class="section-number" aria-hidden="true">${number(locale, i + 1).padStart(2, "0")}</span><div><h2>${escape(title)}</h2><p>${escape(body)}</p></div></section>`).join("")}
+  return `${heading}<div class="document"><p class="fineprint">${escape(info.updated ?? `${c.version} \xB7 v0.3.1`)}</p>${sections.map(([title, body], i) => `<section class="document-section"><span class="section-number" aria-hidden="true">${number(locale, i + 1).padStart(2, "0")}</span><div><h2>${escape(title)}</h2><p>${escape(body)}</p></div></section>`).join("")}
     <div class="document-links">${page === "privacy" ? external("/issues", info.link) : [external("", info.code), external("/releases", info.releases), external("/blob/main/LICENSE", info.license), external("/blob/main/CONTRIBUTING.md", info.contribute)].join("")}</div></div>`;
 }
 function filterHelp(document, locale, query = "") {
@@ -2044,7 +2045,7 @@ function renderSite(document, page, locale, dark = false) {
   theme.textContent = dark ? "\u2600" : "\u25D0";
   document.getElementById("main").innerHTML = siteMarkup(page, locale);
   document.getElementById("footer-message").textContent = c.footer;
-  document.getElementById("footer-version").textContent = `${c.version} \xB7 0.3.0`;
+  document.getElementById("footer-version").textContent = `${c.version} \xB7 0.3.1`;
   document.getElementById("footer-privacy").textContent = c.nav[2];
   document.getElementById("footer-license").textContent = c.about.license + " \u2197";
   for (const link of document.querySelectorAll("a[href]")) {

@@ -180,6 +180,7 @@ function sanitizeArticle(html2, baseURL, document2) {
 // src/i18n.js
 var SUPPORTED_LANGUAGES = Object.freeze(["en", "zh-CN", "es", "fr", "de", "ja", "ar"]);
 var rows = {
+  "hidePreview": ["Hide preview", "\u6536\u8D77", "Ocultar vista previa", "Masquer l\u2019aper\xE7u", "Vorschau schlie\xDFen", "\u30D7\u30EC\u30D3\u30E5\u30FC\u3092\u9589\u3058\u308B", "\u0625\u062E\u0641\u0627\u0621 \u0627\u0644\u0645\u0639\u0627\u064A\u0646\u0629"],
   "reader-nav-about": ["About", "\u5173\u4E8E", "Acerca de", "\xC0 propos", "\xDCber Pageleaf", "\u3053\u306E\u30A2\u30D7\u30EA\u306B\u3064\u3044\u3066", "\u062D\u0648\u0644"],
   "helpShortcut": ["Click Pageleaf in the Chrome toolbar, or press Alt/Option + Shift + L (if available).", "\u6253\u5F00\u6587\u7AE0\u540E\uFF0C\u70B9 Chrome \u5DE5\u5177\u680F\u91CC\u7684 Pageleaf\u3002\u4E5F\u53EF\u4EE5\u6309 Alt / Option + Shift + L\u3002", "Pulsa Pageleaf en la barra de Chrome o Alt/Option + May\xFAs + L, si est\xE1 disponible.", "Cliquez sur Pageleaf dans Chrome ou appuyez sur Alt/Option + Maj + L, si disponible.", "Pageleaf in der Chrome-Symbolleiste anklicken oder Alt/Option + Umschalt + L dr\xFCcken, falls verf\xFCgbar.", "\u30C4\u30FC\u30EB\u30D0\u30FC\u306E Pageleaf \u3092\u30AF\u30EA\u30C3\u30AF\u3059\u308B\u304B\u3001\u5229\u7528\u53EF\u80FD\u306A\u3089 Alt/Option + Shift + L \u3092\u62BC\u3057\u307E\u3059\u3002", "\u0627\u0636\u063A\u0637 Pageleaf \u0641\u064A \u0634\u0631\u064A\u0637 Chrome \u0623\u0648 Alt/Option + Shift + L \u0625\u0646 \u0643\u0627\u0646 \u0645\u062A\u0627\u062D\u064B\u0627."],
   "helpUnsupported": ["Pin Pageleaf from Chrome\u2019s extensions menu. PDFs, internal browser pages, extension stores and some app pages cannot be captured.", "\u5148\u5728 Chrome \u6269\u5C55\u83DC\u5355\u91CC\u56FA\u5B9A Pageleaf\u3002PDF\u3001\u6D4F\u89C8\u5668\u8BBE\u7F6E\u9875\u548C\u90E8\u5206\u7F51\u9875\u4E0D\u80FD\u4FDD\u5B58\u3002", "Fija Pageleaf desde el men\xFA de extensiones. No se capturan PDF, p\xE1ginas internas, tiendas de extensiones ni ciertas aplicaciones.", "\xC9pinglez Pageleaf depuis le menu des extensions. Les PDF, pages internes, boutiques d\u2019extensions et certaines applications ne peuvent pas \xEAtre captur\xE9s.", "Pageleaf im Erweiterungsmen\xFC anheften. PDFs, interne Browserseiten, Erweiterungs-Stores und manche Anwendungen lassen sich nicht erfassen.", "Chrome \u306E\u62E1\u5F35\u6A5F\u80FD\u30E1\u30CB\u30E5\u30FC\u304B\u3089 Pageleaf \u3092\u56FA\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002PDF\u3001\u30D6\u30E9\u30A6\u30B6\u30FC\u5185\u90E8\u30DA\u30FC\u30B8\u3001\u62E1\u5F35\u6A5F\u80FD\u30B9\u30C8\u30A2\u3001\u4E00\u90E8\u306E\u30A2\u30D7\u30EA\u306B\u306F\u5BFE\u5FDC\u3057\u3066\u3044\u307E\u305B\u3093\u3002", "\u062B\u0628\u0651\u062A Pageleaf \u0641\u064A \u0627\u0644\u0634\u0631\u064A\u0637 \u0645\u0646 \u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062A. \u0644\u0627 \u062A\u064F\u0644\u062A\u0642\u0637 \u0645\u0644\u0641\u0627\u062A PDF \u0648\u0635\u0641\u062D\u0627\u062A \u0627\u0644\u0645\u062A\u0635\u0641\u062D \u0627\u0644\u062F\u0627\u062E\u0644\u064A\u0629 \u0648\u0645\u062A\u0627\u062C\u0631 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062A \u0648\u0628\u0639\u0636 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u0627\u062A."],
@@ -2022,6 +2023,7 @@ function toast(message) {
   }, 4e3);
 }
 function show(view) {
+  if (view !== "reader") closeOrganization();
   for (const id of ["welcome", "reader", "error-view"])
     $(id).hidden = id !== view;
 }
@@ -2099,6 +2101,7 @@ function updateImportSummary() {
   $("import-summary").textContent = tr("importPreview", { add: formatNumber(settings.language, importSummary.add), skip: formatNumber(settings.language, importSummary.skip) }) + (importSummary.sanitized ? ` ${tr("sanitized")}` : "");
 }
 function applyLanguage() {
+  closeOrganization();
   translateDocument(document, settings.language);
   if ($("language")) $("language").value = settings.language;
   const badge = $("privacy-status");
@@ -2172,6 +2175,7 @@ function renderLibrary() {
   }
 }
 function renderArticle(value) {
+  closeOrganization();
   try {
     const clean = sanitizeArticle(
       value.content,
@@ -2484,6 +2488,7 @@ function renderMarkup() {
   updateMarkupButtons();
 }
 function changedMarkup() {
+  closeOrganization();
   dirty = true;
   renderMarkup();
   updateSaveState();
@@ -2535,6 +2540,13 @@ function finishPen(event) {
   article.annotations = validateAnnotations([...article.annotations || [], stroke], $("article-body"));
   changedMarkup();
 }
+function closeOrganization(restoreFocus = false) {
+  organizedDraft = null;
+  $("organize-section").hidden = true;
+  $("organize-preview").replaceChildren();
+  $("organize").setAttribute("aria-expanded", "false");
+  if (restoreFocus) $("organize").focus({ preventScroll: true });
+}
 function previewOrganization() {
   if (!article || saving) return;
   setPenMode(false);
@@ -2555,7 +2567,10 @@ function previewOrganization() {
   }
   $("organize-preview").replaceChildren(list);
   $("organize-hint").textContent = tr(organizedDraft.source === "marks" ? "organizeMarksHint" : "organizeSectionsHint");
-  $("organize-dialog").showModal();
+  $("organize-section").hidden = false;
+  $("organize").setAttribute("aria-expanded", "true");
+  $("organize-title").scrollIntoView({ block: "start" });
+  $("organize-title").focus({ preventScroll: true });
 }
 function appendOrganization() {
   if (!organizedDraft || saving) return;
@@ -2566,7 +2581,7 @@ function appendOrganization() {
   editor.value = next2;
   dirty = true;
   updateSaveState();
-  $("organize-dialog").close();
+  closeOrganization();
   editor.focus();
 }
 function markOrganization() {
@@ -2594,7 +2609,7 @@ function markOrganization() {
   }
   article.annotations = validateAnnotations(marks, $("article-body"));
   changedMarkup();
-  $("organize-dialog").close();
+  closeOrganization(true);
   toast(tr("markAdded"));
 }
 for (const button of document.querySelectorAll("[data-mark]")) {
@@ -2621,12 +2636,18 @@ $("jump-note").addEventListener("click", () => {
   $("personal-note").scrollIntoView({ block: "center" });
   $("personal-note").focus({ preventScroll: true });
 });
-$("organize").addEventListener("click", previewOrganization);
+$("organize").addEventListener("click", () => {
+  if (!$("organize-section").hidden) closeOrganization(true);
+  else previewOrganization();
+});
 $("append-organize").addEventListener("click", appendOrganization);
 $("mark-organized").addEventListener("click", markOrganization);
-$("cancel-organize").addEventListener("click", () => $("organize-dialog").close());
-$("organize-dialog").addEventListener("close", () => {
-  organizedDraft = null;
+$("cancel-organize").addEventListener("click", () => closeOrganization(true));
+$("organize-section").addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeOrganization(true);
+    event.preventDefault();
+  }
 });
 $("pen-layer").addEventListener("pointerdown", startPen);
 $("pen-layer").addEventListener("pointermove", movePen);
@@ -2646,6 +2667,7 @@ if (typeof ResizeObserver === "function") {
   toolbarObserver.observe(document.querySelector(".annotation-toolbar"));
 }
 function preparePrint() {
+  closeOrganization();
   setPenMode(false);
   $("print-note").textContent = $("personal-note").value.trim();
   $("print-note").classList.toggle("empty", !$("print-note").textContent);

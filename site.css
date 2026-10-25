@@ -39,12 +39,12 @@ h1 { font-size: clamp(44px, 5.1vw, 72px); font-weight: 550; letter-spacing: -.05
 .button:hover { border-color: var(--fg); }
 .primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .fineprint { color: var(--muted); font-size: 12px; line-height: 1.7; }
-.sample { border: 1px solid var(--line); padding: 28px 32px; position: relative; align-self: center; }
+.sample { padding: 28px 0; position: relative; align-self: center; }
 .sample-label { font-size: 10px; letter-spacing: .09em; color: var(--muted); padding-block-end: 20px; border-block-end: 1px solid var(--line); margin-block-end: 22px; }
 .sample-heading { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650; }
 .sample-source { font-size: 11px; color: var(--muted); margin-block: 20px 7px; }
 .sample h2 { font-size: 29px; font-weight: 550; letter-spacing: -.035em; line-height: 1.2; }
-.sample-note { border-inline-start: 2px solid var(--fg); padding-inline-start: 15px; margin-block: 23px; }
+.sample-note { margin-block: 23px; }
 .sample-note span { font-size: 11px; color: var(--muted); }
 .sample-note p { font-size: 14px; margin-block-start: 5px; line-height: 1.6; }
 .sample-body { font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.85; max-width: 320px; }
