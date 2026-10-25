@@ -2,7 +2,7 @@
 
 Read an article. Add your thoughts. Keep a portable copy.
 
-Pageleaf is a local-first Chrome extension that turns web articles or selected text into readable notes. **v0.3.0** adds a proper Home, searchable Help center, Privacy page and About page, a new black-and-white identity, and seven interface languages. No account, API key or subscription is required.
+Pageleaf is a local-first Chrome extension that turns web articles or selected text into readable notes. **v0.3.1** provides Home, searchable Help, Privacy and About pages, a black-and-white identity, and seven interface languages. Excerpt previews now appear directly at the end of the article, without a popup or decorative box. No account, API key or subscription is required.
 
 [中文使用说明](README.md#中文使用说明) · [Website and demo](https://2022x126.github.io/pageleaf/) · [Privacy](PRIVACY.md) · [Contributing](CONTRIBUTING.md) · [Download development releases](https://github.com/2022x126/pageleaf/releases)
 

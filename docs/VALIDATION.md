@@ -1,33 +1,31 @@
-# Validation — 0.3.0
+# Validation — 0.3.1
 
-Date: 2026-10-24
+Date: 2026-10-25
 
 ## Automated checks
 
-- `npm run check`: 97 tests pass. Build and static checks confirm Manifest V3, only `activeTab` / `scripting` / `storage`, seven manifest locales, icon dimensions, local assets, CSP, inert SVGs and no application network calls.
-- Extraction runs real Readability, Turndown and sanitization against controlled multilingual HTML, selected text, dangerous markup, editable regions, tables, code and source URL cleaning. Background tests cover tab/document binding, concurrent capture, size limits and temporary-cache cleanup.
-- Reader tests run actual reader code in a DOM with simulated Chrome storage: save snapshots, concurrent windows, conflict copies, drafts, errors, deletion retries, backup import/export preparation and literal print-note preparation.
-- Annotation tests cover mixed-language ranges, inline formatting, overlaps, whitespace offsets, invalid or stale anchors, safe field whitelists and normalized pen strokes. Reader integration verifies marking, undo/clear, save/reopen, pen input, organization preview/cancellation/append, automatic source marking and preserving the exact existing note, including whitespace. Opening the demo after a missing note clears the stale route so refresh can load the example.
-- JSON backup round trips retain validated text and pen marks, sanitize HTML and skip duplicates without replacing notes. Markdown includes inert marked quotations and omits pen strokes. Existing backup/progress/search limits and failure tests pass.
-- All seven languages have complete reader/product labels. Tests cover locale matching, English fallback, Arabic RTL, navigation, preference merging, source-language preservation, FAQ answer search and static English pages without JavaScript. Demo marks match the source text in every supported language. No native-speaker review is claimed.
+`npm run check` passes 100 tests. The build/static checks pass for Manifest V3, exactly activeTab/scripting/storage, seven manifest locales, real icon sizes, local assets, CSP, inert SVGs and application network boundaries. No permissions or data handling changed.
 
-## Visible browser checks
+The reader tests exercise the actual code with a DOM and simulated Chrome storage. This update checks that inline excerpts cannot cross into a different article, mark changes invalidate old excerpts, Escape returns focus, expanded state matches visibility, existing note whitespace is preserved, cancellation cannot append stale text, and unconfirmed excerpts are hidden before printing. Existing extraction, sanitizer, concurrent capture/save, annotation, pen, backup/restore, search, progress and language tests also pass.
 
-The public examples were opened in the user's visible Chrome profile. Only fictional sample content was used.
+## Visible browser verification
 
-- Chinese Home, Help and Privacy show the rewritten short copy, shared logo and working navigation. Searching Help for `画笔` returns the pen and organization explanations. Earlier checks also covered English answer-only Help search and Arabic cross-page navigation.
-- The revised reading example displays a real editable highlight and wavy underline in pure white and pure black. A real pointer drag creates a pen stroke. Organization opens a clean numbered list without Markdown syntax; confirming appends source excerpts to My notes and Save updates the preview library. Automated tests additionally cover restoration in extension storage; the website itself only uses page memory.
-- The Arabic sample was checked at 390 × 844: the toolbar wraps, the article remains right-to-left and document client/scroll widths both equal 390 px. The temporary viewport override was reset. Earlier language-switch checks confirmed that a multilingual personal draft and source text remain unchanged.
-- Current screenshots: `home.png`, `help.png`, `privacy.png`, `reader.png`, `reader-dark.png`, `reader-ar.png`, `demo-markup.png` and `organize.png`. These are web previews, not proof of installed-extension acceptance.
+Chrome was not connected to the automation tool during this run. The updated local site was checked in the visible in-app browser, using only the fictional reading-meetup example.
 
-## Remaining acceptance boundaries
+- At 1280 px, the collection preview appears after the article as ordinary text. Computed border is 0 px, background is transparent and box shadow is none. It has no modal or backdrop. Pure white and pure black were visually checked.
+- A narrower 476 px view also displayed the complete wrapping excerpt list and text actions. There was no nested preview scrollbar or summary box.
+- Adding excerpts kept an existing Chinese personal note and appended the new text. Saving updated the page-local preview library. Escape closed the inline section and returned focus to the toolbar control.
+- Home was opened through the reader navigation: the sample has no surrounding frame or decorative quote border. The note editor has a simple bottom rule instead of a surrounding box.
+- Updated screenshots are home.png, organize.png and organize-dark.png. Other screenshots record the earlier 0.3.0 preview and are not new installed-extension acceptance evidence.
 
-Chrome's extension-management page was blocked by the browser automation URL policy; no workaround was attempted. Loading the unpacked build, real toolbar activation and capture in the daily profile, browser-restart persistence and an end-to-end installed-extension file download remain manual acceptance items.
+## Acceptance boundaries
 
-Browser download file contents and actual print/PDF pagination have not been confirmed through the UI. Tests verify payload and print-content preparation. Pen strokes use proportional page coordinates and can shift after font or window changes; inspect drawings and the print preview before exporting.
+Earlier 0.3.0 checks in the visible Chrome profile included multilingual navigation, real pen input, Arabic RTL at 390 × 844, draft preservation and public-site navigation. This run does not repeat or extend those installed-browser claims.
 
-No Chrome Web Store submission has been made. There are no claims about users, installations, Stars, adoption or OpenAI program approval. No activity application was resubmitted.
+Installed toolbar capture, extraction inside the daily profile, restart persistence, end-to-end installed downloads and actual print/PDF pagination still need manual acceptance. Previously the extension-management page was blocked by the browser automation policy; no workaround was attempted. Payload generation and print preparation are covered by tests. Pen positions use proportional coordinates and can shift after font/window changes.
 
-## Public website
+No Chrome Web Store submission or activity application was made in this update. No user, installation, Star, adoption or program-approval claims are made. Web-demo notes stay in page memory and disappear on refresh.
 
-The public site is live at https://2022x126.github.io/pageleaf/. GitHub Pages reports `built`, `gh-pages` source at `/`, and HTTPS enforced. The homepage returns HTTP 200. Home, Privacy and the interactive reader were opened through the deployed HTTPS site in the visible Chrome profile; the clean organization preview and source marking controls work there. Only the 18 whitelisted public assets were deployed; the extension manifest, worker and private workspace files are excluded.
+## Deployment
+
+The public site is https://2022x126.github.io/pageleaf/. On 2026-10-25, GitHub reported the 0.3.1 deployment as `built` at gh-pages commit `d11c9eef0316c7a69f9b580fd28c955e3d2e908e`. The public Chinese demo was then opened in the visible in-app browser: its organize control expanded an inline text list, with no dialog or surrounding frame. This is public-site verification, not installed-extension acceptance.

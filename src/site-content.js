@@ -224,7 +224,7 @@ export const SITE_CONTENT = {
     "privacy": {
       "title": "Privacy",
       "lead": "What Pageleaf reads, what it saves and how to delete it.",
-      "updated": "Pageleaf 0.3.0 · 24 October 2026",
+      "updated": "Pageleaf 0.3.1 · 25 October 2026",
       "sections": [
         [
           "Local processing",
@@ -275,7 +275,7 @@ export const SITE_CONTENT = {
         ],
         [
           "Development status",
-          "Version 0.3.0 is a development release, not yet published in the Chrome Web Store. Some pages cannot be captured correctly. Check important passages against the original article and review exported files."
+          "Version 0.3.1 is a development release, not yet published in the Chrome Web Store. Some pages cannot be captured correctly. Check important passages against the original article and review exported files."
         ],
         [
           "Source code and licenses",
@@ -477,7 +477,7 @@ export const SITE_CONTENT = {
     "privacy": {
       "title": "隐私说明",
       "lead": "扩展会读取什么、保存什么，以及怎么删除。",
-      "updated": "Pageleaf 0.3.0 · 2026 年 10 月 24 日",
+      "updated": "Pageleaf 0.3.1 · 2026 年 10 月 25 日",
       "sections": [
         [
           "本机处理",
@@ -528,7 +528,7 @@ export const SITE_CONTENT = {
         ],
         [
           "目前的版本",
-          "0.3.0 是开发版，还没上架 Chrome 应用商店。有些网页不能正确提取，重要内容请对照原文，导出后也检查一下。"
+          "0.3.1 是开发版，还没上架 Chrome 应用商店。有些网页不能正确提取，重要内容请对照原文，导出后也检查一下。"
         ],
         [
           "源码和许可",
@@ -730,7 +730,7 @@ export const SITE_CONTENT = {
     "privacy": {
       "title": "Privacidad",
       "lead": "Qué lee Pageleaf, qué guarda y cómo borrarlo.",
-      "updated": "Pageleaf 0.3.0 · 24 de octubre de 2026",
+      "updated": "Pageleaf 0.3.1 · 25 de octubre de 2026",
       "sections": [
         [
           "Procesamiento local",
@@ -781,7 +781,7 @@ export const SITE_CONTENT = {
         ],
         [
           "Estado del desarrollo",
-          "0.3.0 es una versión de desarrollo aún no publicada en Chrome Web Store. Algunas páginas no se capturan bien. Contrasta los pasajes importantes con el original y revisa tus exportaciones."
+          "0.3.1 es una versión de desarrollo aún no publicada en Chrome Web Store. Algunas páginas no se capturan bien. Contrasta los pasajes importantes con el original y revisa tus exportaciones."
         ],
         [
           "Código y licencias",
@@ -983,7 +983,7 @@ export const SITE_CONTENT = {
     "privacy": {
       "title": "Confidentialité",
       "lead": "Ce que Pageleaf lit, conserve et permet de supprimer.",
-      "updated": "Pageleaf 0.3.0 · 24 octobre 2026",
+      "updated": "Pageleaf 0.3.1 · 25 octobre 2026",
       "sections": [
         [
           "Traitement local",
@@ -1034,7 +1034,7 @@ export const SITE_CONTENT = {
         ],
         [
           "État du développement",
-          "0.3.0 est une version de développement non publiée sur le Chrome Web Store. Certaines pages sont mal capturées. Comparez les passages importants à l’original et vérifiez vos exports."
+          "0.3.1 est une version de développement non publiée sur le Chrome Web Store. Certaines pages sont mal capturées. Comparez les passages importants à l’original et vérifiez vos exports."
         ],
         [
           "Code et licences",
@@ -1236,7 +1236,7 @@ export const SITE_CONTENT = {
     "privacy": {
       "title": "Datenschutz",
       "lead": "Was Pageleaf liest, speichert und wie du es löschst.",
-      "updated": "Pageleaf 0.3.0 · 24. Oktober 2026",
+      "updated": "Pageleaf 0.3.1 · 25. Oktober 2026",
       "sections": [
         [
           "Lokale Verarbeitung",
@@ -1287,7 +1287,7 @@ export const SITE_CONTENT = {
         ],
         [
           "Entwicklungsstand",
-          "0.3.0 ist eine Entwicklungsversion, noch nicht im Chrome Web Store. Manche Seiten werden nicht korrekt erfasst. Vergleiche wichtige Stellen mit dem Original und prüfe exportierte Dateien."
+          "0.3.1 ist eine Entwicklungsversion, noch nicht im Chrome Web Store. Manche Seiten werden nicht korrekt erfasst. Vergleiche wichtige Stellen mit dem Original und prüfe exportierte Dateien."
         ],
         [
           "Quellcode und Lizenzen",
@@ -1489,7 +1489,7 @@ export const SITE_CONTENT = {
     "privacy": {
       "title": "プライバシー",
       "lead": "読み取る情報、保存する情報、削除する方法。",
-      "updated": "Pageleaf 0.3.0 · 2026 年 10 月 24 日",
+      "updated": "Pageleaf 0.3.1 · 2026 年 10 月 25 日",
       "sections": [
         [
           "端末内の処理",
@@ -1540,7 +1540,7 @@ export const SITE_CONTENT = {
         ],
         [
           "開発状況",
-          "0.3.0 は開発版で、Chrome ウェブストアでは未公開です。正しく取り込めないページもあります。大切な箇所は原文と比べ、書き出したファイルも確認してください。"
+          "0.3.1 は開発版で、Chrome ウェブストアでは未公開です。正しく取り込めないページもあります。大切な箇所は原文と比べ、書き出したファイルも確認してください。"
         ],
         [
           "ソースとライセンス",
@@ -1742,7 +1742,7 @@ export const SITE_CONTENT = {
     "privacy": {
       "title": "الخصوصية",
       "lead": "ما يقرأه Pageleaf وما يحفظه وكيف تحذفه.",
-      "updated": "Pageleaf 0.3.0 · 24 أكتوبر 2026",
+      "updated": "Pageleaf 0.3.1 · 25 أكتوبر 2026",
       "sections": [
         [
           "المعالجة المحلية",
@@ -1793,7 +1793,7 @@ export const SITE_CONTENT = {
         ],
         [
           "حالة التطوير",
-          "0.3.0 إصدار تطوير لم يُنشر في Chrome Web Store بعد. قد لا تُلتقط بعض الصفحات جيدًا. قارن المقاطع المهمة بالأصل وراجع الملفات المصدّرة."
+          "0.3.1 إصدار تطوير لم يُنشر في Chrome Web Store بعد. قد لا تُلتقط بعض الصفحات جيدًا. قارن المقاطع المهمة بالأصل وراجع الملفات المصدّرة."
         ],
         [
           "الكود والتراخيص",

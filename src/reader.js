@@ -83,6 +83,7 @@ function toast(message) {
   }, 4000);
 }
 function show(view) {
+  if (view !== "reader") closeOrganization();
   for (const id of ["welcome", "reader", "error-view"])
     $(id).hidden = id !== view;
 }
@@ -171,6 +172,7 @@ function updateImportSummary() {
   $("import-summary").textContent = tr("importPreview", {add: formatNumber(settings.language, importSummary.add), skip: formatNumber(settings.language, importSummary.skip)}) + (importSummary.sanitized ? ` ${tr("sanitized")}` : "");
 }
 function applyLanguage() {
+  closeOrganization();
   translateDocument(document, settings.language);
   if ($("language")) $("language").value = settings.language;
   const badge = $("privacy-status");
@@ -255,6 +257,7 @@ function renderLibrary() {
   }
 }
 function renderArticle(value) {
+  closeOrganization();
   try {
     const clean = sanitizeArticle(
       value.content,
@@ -582,6 +585,7 @@ function renderMarkup() {
   updateMarkupButtons();
 }
 function changedMarkup() {
+  closeOrganization();
   dirty = true;
   renderMarkup();
   updateSaveState();
@@ -633,6 +637,13 @@ function finishPen(event) {
   article.annotations = validateAnnotations([...(article.annotations || []), stroke], $("article-body"));
   changedMarkup();
 }
+function closeOrganization(restoreFocus = false) {
+  organizedDraft = null;
+  $("organize-section").hidden = true;
+  $("organize-preview").replaceChildren();
+  $("organize").setAttribute("aria-expanded", "false");
+  if (restoreFocus) $("organize").focus({preventScroll: true});
+}
 function previewOrganization() {
   if (!article || saving) return;
   setPenMode(false);
@@ -653,7 +664,10 @@ function previewOrganization() {
   }
   $("organize-preview").replaceChildren(list);
   $("organize-hint").textContent = tr(organizedDraft.source === "marks" ? "organizeMarksHint" : "organizeSectionsHint");
-  $("organize-dialog").showModal();
+  $("organize-section").hidden = false;
+  $("organize").setAttribute("aria-expanded", "true");
+  $("organize-title").scrollIntoView({block: "start"});
+  $("organize-title").focus({preventScroll: true});
 }
 function appendOrganization() {
   if (!organizedDraft || saving) return;
@@ -664,7 +678,7 @@ function appendOrganization() {
   editor.value = next;
   dirty = true;
   updateSaveState();
-  $("organize-dialog").close();
+  closeOrganization();
   editor.focus();
 }
 function markOrganization() {
@@ -692,7 +706,7 @@ function markOrganization() {
   }
   article.annotations = validateAnnotations(marks, $("article-body"));
   changedMarkup();
-  $("organize-dialog").close();
+  closeOrganization(true);
   toast(tr("markAdded"));
 }
 for (const button of document.querySelectorAll("[data-mark]")) {
@@ -713,11 +727,16 @@ $("clear-marks").addEventListener("click", () => {
   toast(tr("marksCleared"));
 });
 $("jump-note").addEventListener("click", () => { $("personal-note").scrollIntoView({block: "center"}); $("personal-note").focus({preventScroll: true}); });
-$("organize").addEventListener("click", previewOrganization);
+$("organize").addEventListener("click", () => {
+  if (!$("organize-section").hidden) closeOrganization(true);
+  else previewOrganization();
+});
 $("append-organize").addEventListener("click", appendOrganization);
 $("mark-organized").addEventListener("click", markOrganization);
-$("cancel-organize").addEventListener("click", () => $("organize-dialog").close());
-$("organize-dialog").addEventListener("close", () => { organizedDraft = null; });
+$("cancel-organize").addEventListener("click", () => closeOrganization(true));
+$("organize-section").addEventListener("keydown", event => {
+  if (event.key === "Escape") { closeOrganization(true); event.preventDefault(); }
+});
 $("pen-layer").addEventListener("pointerdown", startPen);
 $("pen-layer").addEventListener("pointermove", movePen);
 $("pen-layer").addEventListener("pointerup", finishPen);
@@ -732,6 +751,7 @@ if (typeof ResizeObserver === "function") {
 }
 
 function preparePrint() {
+  closeOrganization();
   setPenMode(false);
   $("print-note").textContent = $("personal-note").value.trim();
   $("print-note").classList.toggle("empty", !$("print-note").textContent);

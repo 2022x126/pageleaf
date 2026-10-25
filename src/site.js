@@ -26,7 +26,7 @@ export function siteMarkup(page = 'home', locale = 'en') {
     <section id="install" class="install document-section"><div><span class="section-number" aria-hidden="true">01</span><h2>${escape(info.installTitle)}</h2><p>${escape(info.installIntro)}</p>${external('/releases', info.releases)}</div><ol>${info.installSteps.map((step) => `<li>${escape(step)}</li>`).join('')}</ol></section>
     <section class="help-articles section" aria-label="${escape(c.nav[1])}"><div class="help-search"><label for="help-search">${escape(info.search)}</label><input type="search" id="help-search" placeholder="${escape(info.placeholder)}" autocomplete="off" spellcheck="false"><p id="help-count" class="fineprint" role="status" aria-live="polite">${escape(info.results.replace('{count}', number(locale, info.questions.length)))}</p></div><div id="faq-list">${info.questions.map(([id, question, answer]) => `<details id="${id}" class="faq"><summary>${escape(question)}</summary><p>${escape(answer)}</p></details>`).join('')}</div><p id="help-empty" class="empty" hidden>${escape(info.empty)}</p><p class="support-link">${external('/issues', info.feedback)}</p></section>`;
   const sections = page === 'privacy' ? [...info.sections, WEBSITE_PRIVACY[locale] ?? WEBSITE_PRIVACY.en] : info.sections;
-  return `${heading}<div class="document"><p class="fineprint">${escape(info.updated ?? `${c.version} · v0.3.0`)}</p>${sections.map(([title, body], i) => `<section class="document-section"><span class="section-number" aria-hidden="true">${number(locale, i + 1).padStart(2, '0')}</span><div><h2>${escape(title)}</h2><p>${escape(body)}</p></div></section>`).join('')}
+  return `${heading}<div class="document"><p class="fineprint">${escape(info.updated ?? `${c.version} · v0.3.1`)}</p>${sections.map(([title, body], i) => `<section class="document-section"><span class="section-number" aria-hidden="true">${number(locale, i + 1).padStart(2, '0')}</span><div><h2>${escape(title)}</h2><p>${escape(body)}</p></div></section>`).join('')}
     <div class="document-links">${page === 'privacy' ? external('/issues', info.link) : [external('', info.code), external('/releases', info.releases), external('/blob/main/LICENSE', info.license), external('/blob/main/CONTRIBUTING.md', info.contribute)].join('')}</div></div>`;
 }
 
@@ -71,7 +71,7 @@ export function renderSite(document, page, locale, dark = false) {
   theme.textContent = dark ? '☀' : '◐';
   document.getElementById('main').innerHTML = siteMarkup(page, locale);
   document.getElementById('footer-message').textContent = c.footer;
-  document.getElementById('footer-version').textContent = `${c.version} · 0.3.0`;
+  document.getElementById('footer-version').textContent = `${c.version} · 0.3.1`;
   document.getElementById('footer-privacy').textContent = c.nav[2];
   document.getElementById('footer-license').textContent = c.about.license + ' ↗';
   for (const link of document.querySelectorAll('a[href]')) {

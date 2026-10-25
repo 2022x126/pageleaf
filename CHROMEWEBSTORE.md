@@ -1,7 +1,7 @@
 # Chrome Web Store Listing — Pageleaf
 
-> Last updated: 2026-10-24
-> Version: 0.3.0
+> Last updated: 2026-10-25
+> Version: 0.3.1
 > Chrome Web Store status: Draft; not submitted or published. GitHub development releases and a product website are separate from store publication.
 
 ## Store listing
@@ -14,7 +14,7 @@
 
 Pageleaf turns a web article or selected passage into a readable note, with a minimal white or black appearance.
 
-Highlight selected text, add straight or wavy underlines, or draw with the pen. Collect marked quotations, or section-opening sentences, into a preview before adding them to your note. Save to keep marks and drawings. Markdown includes marked text; JSON includes both text marks and pen strokes.
+Highlight selected text, add straight or wavy underlines, or draw with the pen. Collect marked quotations, or section-opening sentences, into a plain preview at the end of the article before adding them to your note. Save to keep marks and drawings. Markdown includes marked text; JSON includes both text marks and pen strokes.
 
 Read with an article outline and adjustable text size. Add your own thoughts, explicitly save a note, and find it again with full-text search. Saved notes remember your reading position on this device.
 
@@ -48,6 +48,7 @@ Support: https://github.com/2022x126/pageleaf/issues
 | Privacy | Store screenshot dimensions require checking | Web preview; installed-extension/store acceptance pending | `docs/privacy.png` |
 | Reader | Store screenshot dimensions require checking | Web preview; installed-extension/store acceptance pending | `docs/reader.png` |
 | Arabic reader | Store screenshot dimensions require checking | Web preview of RTL interface with original-language article | `docs/reader-ar.png` |
+| Inline excerpt preview | Store screenshot dimensions require checking | Borderless white/black web previews; installed acceptance pending | `docs/organize.png`, `docs/organize-dark.png` |
 | Small promo tile | 440×280 | Not created; optional | |
 | Marquee promo tile | 1400×560 | Not created; optional | |
 
@@ -123,6 +124,7 @@ Verified publicly reachable in Chrome on 2026-10-24. This does not establish sto
 
 | Version | Date | Changes | Chrome Web Store status |
 | --- | --- | --- | --- |
+| 0.3.1 | 2026-10-25 | Borderless article-end excerpt preview replaces the modal; simpler Home sample and note editor. Preview clears on article/mark changes and stays out of print. No changes to permissions or data handling. | Draft |
 | 0.3.0 | 2026-10-24 | Text highlights, underlines, wavy lines, pen strokes and reviewed excerpt collection; practical seven-language demo and plainer product copy; shared Pageleaf identity and Leaf-P logo; Home, searchable Help, Privacy and About; first-install/options Home; seven interface/guide languages, automatic selection/English fallback, Arabic RTL and locale-aware dates. No new permissions or note-content transmission. | Draft |
 | 0.2.0 | 2026-10-21 | White/black interface, full-text search, JSON backup/restore, browser print/PDF and local saved-note reading progress. | Draft |
 | 0.1.0 | 2026-10-21 | Initial article/selection extraction, reader, local notes and Markdown export. | Draft |

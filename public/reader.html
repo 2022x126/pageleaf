@@ -74,7 +74,7 @@
               <button type="button" id="undo-mark" data-i18n="undoLast">Undo mark</button>
               <button type="button" id="clear-marks" data-i18n="clearMarks">Clear marks</button>
               <button type="button" id="jump-note" data-i18n="mdNotes">My note</button>
-              <button type="button" id="organize" class="organize-button" data-i18n="organize">Collect key points</button>
+              <button type="button" id="organize" class="organize-button" data-i18n="organize" aria-controls="organize-section" aria-expanded="false">Collect key points</button>
             </div>
             <p id="annotation-hint" data-i18n="selectionHint">Select text, then choose a mark. Save your note to keep the marks.</p>
           </div>
@@ -89,6 +89,12 @@
               </header>
 
               <div id="article-surface" class="article-surface"><article id="article-body" class="prose" dir="auto"></article><svg id="pen-layer" class="pen-layer" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+              <section id="organize-section" class="organized-notes" aria-labelledby="organize-title" hidden>
+                <h2 id="organize-title" data-i18n="organizeTitle" tabindex="-1">Notes from this article</h2>
+                <p id="organize-hint"></p>
+                <div id="organize-preview" dir="auto"></div>
+                <div class="organize-actions"><button type="button" id="mark-organized" data-i18n="markInArticle">Mark in article</button><button type="button" id="append-organize" data-i18n="appendToNote">Add to my note</button><button type="button" id="cancel-organize" data-i18n="hidePreview">Hide preview</button></div>
+              </section>
               <section class="annotation">
                 <label for="personal-note" data-i18n="myNotes">My notes</label><textarea id="personal-note" maxlength="20000" placeholder="Write a thought, a question, or a next step…" rows="2" data-i18n-placeholder="notePlaceholder" dir="auto"></textarea>
                 <div id="print-note" class="print-note"></div>
@@ -125,12 +131,6 @@
       <p data-i18n="helpPrint">Saved notes remember your reading position. Print / PDF opens the browser print dialog, where you can save a PDF. Unsaved personal notes are included.</p>
       <p data-i18n="helpUninstall">Uninstalling the extension deletes its local notes. Back up regularly.</p>
     <p><a href="help.html" data-reader-exit="" data-i18n="reader-nav-help">Help</a></p></dialog>
-    <dialog id="organize-dialog">
-      <h2 data-i18n="organizeTitle">Collected key points</h2>
-      <p id="organize-hint"></p>
-      <div id="organize-preview" dir="auto"></div>
-      <div class="dialog-actions"><button id="cancel-organize" data-i18n="cancel" class="text-button">Cancel</button><button id="mark-organized" data-i18n="markInArticle" class="text-button">Mark in article</button><button id="append-organize" data-i18n="appendToNote" class="primary small">Add to my note</button></div>
-    </dialog>
     <dialog id="import-dialog">
       <h2 data-i18n="restoreTitle">Restore note backup</h2>
       <p id="import-summary"></p>

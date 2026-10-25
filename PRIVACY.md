@@ -1,6 +1,6 @@
 # Pageleaf Privacy Policy
 
-Applies to version **0.3.0** · Last updated: **24 October 2026**
+Applies to version **0.3.1** · Last updated: **25 October 2026**
 
 [中文说明](#中文说明)
 
@@ -66,7 +66,7 @@ Contact email:
 
 ## 中文说明
 
-本说明适用于 Pageleaf（叶笺）0.3.0，最后更新于 2026 年 10 月 24 日。
+本说明适用于 Pageleaf（叶笺）0.3.1，最后更新于 2026 年 10 月 25 日。
 
 你点击工具栏图标或快捷键后，Pageleaf 读取当前页面已可访问的正文或选中文字、标题、作者、语言、发布时间及来源，用于阅读、笔记、搜索和导出。表单和可编辑区域不会被采集。它不扫描其他标签、历史、Cookies、密码库或其他文件；只有你选择 JSON 备份文件时才读取该文件。
 

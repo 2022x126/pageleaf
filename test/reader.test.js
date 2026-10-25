@@ -126,6 +126,7 @@ async function reader({
     url: `https://pageleaf.test/reader.html${hash}`,
   });
   const { window } = dom;
+  window.HTMLElement.prototype.scrollIntoView = function () {};
   const downloads = [];
   const blobs = new Map();
   let printCalls = 0;
@@ -497,7 +498,10 @@ test("printing includes the current unsaved personal note as text and refreshes 
   const app = await reader();
   t.after(app.close);
   app.edit('  未保存的想法 <img src="https://example.com/pixel">  ');
+  app.element("organize").click();
+  assert.equal(app.element("organize-section").hidden, false);
   app.element("print").click();
+  assert.equal(app.element("organize-section").hidden, true, "unconfirmed excerpts are excluded from printing");
   assert.equal(app.getPrintCalls(), 1);
   assert.equal(app.element("print-note").textContent, '未保存的想法 <img src="https://example.com/pixel">');
   assert.equal(app.element("print-note").querySelector("img"), null);
@@ -615,7 +619,7 @@ test("organizing marked text previews it without replacing the draft and appends
   app.edit(draft);
   const mark = clickTextMark(app, "用于验证本机保存行为", "underline");
   app.element("organize").click();
-  assert.equal(app.element("organize-dialog").open, true);
+  assert.equal(app.element("organize-section").hidden, false);
   const preview = app.element("organize-preview").textContent;
   assert.ok(preview.includes(mark.exact));
   assert.equal(app.element("organize-preview").querySelectorAll("ol > li").length, 1);
@@ -624,14 +628,14 @@ test("organizing marked text previews it without replacing the draft and appends
   assert.equal(app.element("personal-note").value, draft);
   assert.deepEqual(app.local.values["note:first"], original);
   app.element("cancel-organize").click();
-  assert.equal(app.element("organize-dialog").open, false);
+  assert.equal(app.element("organize-section").hidden, true);
   app.element("append-organize").click();
   assert.equal(app.element("personal-note").value, draft, "a closed preview cannot append stale generated notes");
   assert.deepEqual(app.local.values["note:first"], original);
   app.element("organize").click();
-  assert.equal(app.element("organize-dialog").open, true);
+  assert.equal(app.element("organize-section").hidden, false);
   app.element("append-organize").click();
-  assert.equal(app.element("organize-dialog").open, false);
+  assert.equal(app.element("organize-section").hidden, true);
   assert.equal(app.element("personal-note").value, appended);
   assert.equal(app.element("save-state").textContent, i18n.t("en", "unsavedChanges"));
   assert.deepEqual(app.local.values["note:first"], original);
@@ -712,11 +716,11 @@ test("collecting section excerpts can highlight matching source sentences withou
   assert.equal(app.element("article-body").querySelector("mark"), null);
   assert.equal(app.element("save-state").textContent, i18n.t("en", "savedLocal"));
   app.element("organize").click();
-  assert.equal(app.element("organize-dialog").open, true);
+  assert.equal(app.element("organize-section").hidden, false);
   assert.ok(app.element("organize-preview").textContent.includes("Confirm the room before Friday."));
   assert.equal(app.element("personal-note").value, original.note);
   app.element("mark-organized").click();
-  assert.equal(app.element("organize-dialog").open, false);
+  assert.equal(app.element("organize-section").hidden, true);
   assert.ok(app.element("article-body").querySelector('mark[data-pageleaf-annotation="highlight"]'));
   assert.equal(app.element("article-body").textContent, text);
   assert.equal(app.element("personal-note").value, original.note);
@@ -745,4 +749,42 @@ test("opening the demo after a missing note clears its stale route and remains r
   const reopened = await reader({hash: app.window.location.search}); t.after(reopened.close);
   assert.equal(reopened.element("article-title").textContent, app.element("article-title").textContent);
   assert.equal(reopened.element("error-view").hidden, true);
+});
+
+test("inline excerpts never cross into a different article", async (t) => {
+  const app = await reader(); t.after(app.close);
+  app.element("organize").click();
+  assert.equal(app.element("organize-section").hidden, false);
+  app.api.renderArticle(note("other", {note: "This belongs to the other article."}));
+  assert.equal(app.element("organize-section").hidden, true);
+  assert.equal(app.element("organize-preview").textContent, "");
+  assert.equal(app.element("organize").getAttribute("aria-expanded"), "false");
+  app.element("append-organize").click();
+  assert.equal(app.element("personal-note").value, "This belongs to the other article.");
+});
+
+test("changing source marks discards an outdated excerpt preview", async (t) => {
+  const app = await reader(); t.after(app.close);
+  app.edit("Keep my own thought.");
+  clickTextMark(app, "用于验证本机保存行为", "underline");
+  app.element("organize").click();
+  assert.equal(app.element("organize-section").hidden, false);
+  app.element("undo-mark").click();
+  assert.equal(app.element("organize-section").hidden, true);
+  app.element("append-organize").click();
+  assert.equal(app.element("personal-note").value, "Keep my own thought.");
+});
+
+test("inline excerpt controls expose their state and Escape returns focus without trapping the page", async (t) => {
+  const app = await reader(); t.after(app.close);
+  app.element("organize").click();
+  assert.equal(app.window.document.activeElement, app.element("organize-title"));
+  assert.equal(app.element("organize").getAttribute("aria-expanded"), "true");
+  assert.equal(app.element("organize-section").tagName, "SECTION");
+  app.element("organize-title").dispatchEvent(new app.window.KeyboardEvent("keydown", {key: "Escape", bubbles: true}));
+  assert.equal(app.element("organize-section").hidden, true);
+  assert.equal(app.window.document.activeElement, app.element("organize"));
+  app.element("organize").click();
+  app.element("organize").click();
+  assert.equal(app.element("organize-section").hidden, true);
 });
